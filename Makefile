@@ -207,6 +207,12 @@ appimage-%:
 
 lint: check-single-includes clint lualint _opt_pylint _opt_shlint
 
+style-lint: uncrustify
+
+uncrustify:
+	bash scripts/run_uncrustify.sh -l
+
+
 # Generic pattern rules, allowing for `make build/bin/nvim` etc.
 # Does not work with "Unix Makefiles".
 ifeq ($(BUILD_TYPE),Ninja)
