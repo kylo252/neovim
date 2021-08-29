@@ -1,0 +1,57 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+fail_fast: false
+repos:
+  - repo: local
+    hooks:
+      - id: clint
+        name: clint
+        language: system
+        entry: make
+        args: [clint-full]
+        types: [c]
+        always_run: false
+        log_file: build/clint-hook.log
+        stages: [manual]
+      - id: lualint
+        name: lualint
+        language: system
+        entry: make
+        args: [lualint]
+        types: [shell]
+        log_file: build/lualint-hook.log
+        always_run: false
+        stages: [manual]
+      - id: shlint
+        name: shlint
+        language: system
+        entry: make
+        args: [shlint]
+        types: [shell]
+        log_file: build/shlint-hook.log
+        always_run: false
+        stages: [manual]
+      - id: pylint
+        name: pylint
+        language: system
+        entry: make
+        args: [pylint]
+        types: [python]
+        log_file: build/pylint-hook.log
+        always_run: false
+        stages: [manual]
+      - id: uncrustify
+        name: uncrustify
+        language: system
+        entry: bash
+        args: [scripts/run_uncrustify.sh, -c]
+        types: [c]
+        always_run: false
+        stages: [manual]
+      - id: commitlint
+        name: commitlint
+        language: system
+        entry: bash
+        args: [scripts/run_commitlint.sh]
+        stages: [commit-msg]
+
