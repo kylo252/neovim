@@ -223,6 +223,15 @@ appimage-%:
 
 lint: check-single-includes clint _opt_stylua lualint _opt_pylint _opt_shlint _opt_commitlint
 
+style-lint: uncrustify
+
+uncrustify-fix:
+	bash scripts/run_uncrustify.sh -f
+
+uncrustify:
+	bash scripts/run_uncrustify.sh
+
+
 # Generic pattern rules, allowing for `make build/bin/nvim` etc.
 # Does not work with "Unix Makefiles".
 ifeq ($(CMAKE_GENERATOR),Ninja)
@@ -233,4 +242,4 @@ $(DEPS_BUILD_DIR)/%: phony_force
 	$(BUILD_TOOL) -C $(DEPS_BUILD_DIR) $(patsubst $(DEPS_BUILD_DIR)/%,%,$@)
 endif
 
-.PHONY: test stylua lualint pylint shlint functionaltest unittest lint clint clean distclean nvim libnvim cmake deps install appimage checkprefix commitlint
+.PHONY: test stylua lualint pylint shlint functionaltest unittest lint clint clean distclean nvim libnvim cmake deps install appimage checkprefix commitlint style-lint
