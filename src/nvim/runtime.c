@@ -1104,7 +1104,7 @@ static inline char *add_dir(char *dest, const char *const dir, const size_t dir_
     if (!after_pathsep(dest - 1, dest)) {
       *dest++ = PATHSEP;
     }
-#if defined(WIN32)
+#if defined(MSWIN)
     size_t size = (type == kXDGDataHome ? sizeof("nvim-data") - 1 : NVIM_SIZE);
     memmove(dest, (type == kXDGDataHome ? "nvim-data" : "nvim"), size);
     dest += size;
@@ -1174,7 +1174,7 @@ char *runtimepath_default(bool clean_arg)
   if (data_home != NULL) {
     data_len = strlen(data_home);
     if (data_len != 0) {
-#if defined(WIN32)
+#if defined(MSWIN)
       size_t nvim_size = (sizeof("nvim-data") - 1);
 #else
       size_t nvim_size = NVIM_SIZE;

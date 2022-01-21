@@ -1717,7 +1717,7 @@ failed:
 
   if (read_stdin) {
     close(0);
-#ifndef WIN32
+#ifndef MSWIN
     // On Unix, use stderr for stdin, makes shell commands work.
     vim_ignored = dup(2);
 #else

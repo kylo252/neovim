@@ -4671,7 +4671,7 @@ void fname_expand(buf_T *buf, char_u **ffname, char_u **sfname)
   }
   *ffname = (char_u *)fix_fname((char *)(*ffname));     // expand to full path
 
-#ifdef WIN32
+#ifdef MSWIN
   if (!buf->b_p_bin) {
     // If the file name is a shortcut file, use the file it links to.
     char *rfname = os_resolve_shortcut((const char *)(*ffname));

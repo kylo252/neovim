@@ -1615,7 +1615,7 @@ static void f_debugbreak(typval_T *argvars, typval_T *rettv, FunPtr fptr)
   if (pid == 0) {
     emsg(_(e_invarg));
   } else {
-#ifdef WIN32
+#ifdef MSWIN
     HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, 0, pid);
 
     if (hProcess != NULL) {
@@ -1974,7 +1974,7 @@ static void f_environ(typval_T *argvars, typval_T *rettv, FunPtr fptr)
     char c = env[i][len];
     env[i][len] = NUL;
 
-#ifdef WIN32
+#ifdef MSWIN
     // Upper-case all the keys for Windows so we can detect duplicates
     char *const key = strcase_save(str, true);
 #else
@@ -4436,7 +4436,7 @@ static void f_has(typval_T *argvars, typval_T *rettv, FunPtr fptr)
 #ifdef UNIX
     "unix",
 #endif
-#if defined(WIN32)
+#if defined(MSWIN)
     "win32",
 #endif
 #ifdef _WIN64
@@ -5324,7 +5324,7 @@ static void f_jobresize(typval_T *argvars, typval_T *rettv, FunPtr fptr)
 }
 
 static const char *ignored_env_vars[] = {
-#ifndef WIN32
+#ifndef MSWIN
   "COLUMNS",
   "LINES",
   "TERMCAP",
@@ -5336,7 +5336,7 @@ static const char *ignored_env_vars[] = {
 /// According to comments in src/win/process.c of libuv, Windows has a few
 /// "essential" environment variables.
 static const char *required_env_vars[] = {
-#ifdef WIN32
+#ifdef MSWIN
   "HOMEDRIVE",
   "HOMEPATH",
   "LOGONSERVER",
@@ -5375,7 +5375,7 @@ static dict_T *create_environment(const dictitem_T *job_env, const bool clear_en
           tv_dict_item_remove(env, dv);
         }
       }
-#ifndef WIN32
+#ifndef MSWIN
       // Set COLORTERM to "truecolor" if termguicolors is set and 256
       // otherwise, but only if it was set in the parent terminal at all
       dictitem_T *dv = tv_dict_find(env, S_LEN("COLORTERM"));
@@ -5400,7 +5400,7 @@ static dict_T *create_environment(const dictitem_T *job_env, const bool clear_en
   }
 
   if (job_env) {
-#ifdef WIN32
+#ifdef MSWIN
     TV_DICT_ITER(job_env->di_tv.vval.v_dict, var, {
       // Always use upper-case keys for Windows so we detect duplicate keys
       char *const key = strcase_save((const char *)var->di_key, true);
@@ -5501,7 +5501,7 @@ static void f_jobstart(typval_T *argvars, typval_T *rettv, FunPtr fptr)
       return;
     }
 
-#ifdef WIN32
+#ifdef MSWIN
     if (pty && overlapped) {
       semsg(_(e_invarg2),
             "job cannot have both 'pty' and 'overlapped' options set");
@@ -7687,7 +7687,7 @@ static void f_resolve(typval_T *argvars, typval_T *rettv, FunPtr fptr)
 {
   rettv->v_type = VAR_STRING;
   const char *fname = tv_get_string(&argvars[0]);
-#ifdef WIN32
+#ifdef MSWIN
   char *v = os_resolve_shortcut(fname);
   if (v == NULL) {
     if (os_is_reparse_point_include(fname)) {

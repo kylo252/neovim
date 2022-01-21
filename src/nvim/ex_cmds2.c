@@ -1867,7 +1867,7 @@ int source_level(void *cookie)
 /// If possible the handle is closed on exec().
 static FILE *fopen_noinh_readbin(char *filename)
 {
-#ifdef WIN32
+#ifdef MSWIN
   int fd_tmp = os_open(filename, O_RDONLY | O_BINARY | O_NOINHERIT, 0);
 #else
   int fd_tmp = os_open(filename, O_RDONLY, 0);
@@ -2982,7 +2982,7 @@ void ex_language(exarg_T *eap)
 
 static char_u **locales = NULL;       // Array of all available locales
 
-# ifndef WIN32
+# ifndef MSWIN
 static bool did_init_locales = false;
 
 /// Return an array of strings for all available locales + NULL for the
@@ -3022,7 +3022,7 @@ static char_u **find_locales(void)
 /// Lazy initialization of all available locales.
 static void init_locales(void)
 {
-# ifndef WIN32
+# ifndef MSWIN
   if (!did_init_locales) {
     did_init_locales = true;
     locales = find_locales();

@@ -86,7 +86,7 @@ void server_teardown(void)
 /// This function is NOT thread safe
 char *server_address_new(void)
 {
-#ifdef WIN32
+#ifdef MSWIN
   static uint32_t count = 0;
   char template[ADDRESS_MAX_SIZE];
   snprintf(template, ADDRESS_MAX_SIZE,

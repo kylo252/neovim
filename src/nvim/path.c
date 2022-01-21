@@ -185,7 +185,7 @@ const char *path_next_component(const char *fname)
 ///   - 1 otherwise
 int path_head_length(void)
 {
-#ifdef WIN32
+#ifdef MSWIN
   return 3;
 #else
   return 1;
@@ -200,7 +200,7 @@ int path_head_length(void)
 ///   - False otherwise
 bool is_path_head(const char_u *path)
 {
-#ifdef WIN32
+#ifdef MSWIN
   return isalpha(path[0]) && path[1] == ':';
 #else
   return vim_ispathsep(*path);
@@ -214,7 +214,7 @@ char_u *get_past_head(const char_u *path)
 {
   const char_u *retval = path;
 
-#ifdef WIN32
+#ifdef MSWIN
   // May skip "c:"
   if (is_path_head(path)) {
     retval = path + 2;
@@ -628,7 +628,7 @@ static size_t do_path_expand(garray_T *gap, const char_u *path, size_t wildoff, 
       s = p + 1;
     } else if (path_end >= path + wildoff
                && (vim_strchr((char_u *)"*?[{~$", *path_end) != NULL
-#ifndef WIN32
+#ifndef MSWIN
                    || (!p_fic && (flags & EW_ICASE)
                        && isalpha(utf_ptr2char(path_end)))
 #endif
@@ -889,7 +889,7 @@ static char_u *get_path_cutoff(char_u *fname, garray_T *gap)
     int j = 0;
 
     while ((fname[j] == path_part[i][j]
-#ifdef WIN32
+#ifdef MSWIN
             || (vim_ispathsep(fname[j]) && vim_ispathsep(path_part[i][j]))
 #endif
             )  // NOLINT(whitespace/parens)
@@ -1791,7 +1791,7 @@ int vim_FullName(const char *fname, char *buf, size_t len, bool force)
 
   if (strlen(fname) > (len - 1)) {
     xstrlcpy(buf, fname, len);  // truncate
-#ifdef WIN32
+#ifdef MSWIN
     slash_adjust((char_u *)buf);
 #endif
     return FAIL;
@@ -1806,7 +1806,7 @@ int vim_FullName(const char *fname, char *buf, size_t len, bool force)
   if (rv == FAIL) {
     xstrlcpy(buf, fname, len);  // something failed; use the filename
   }
-#ifdef WIN32
+#ifdef MSWIN
   slash_adjust((char_u *)buf);
 #endif
   return rv;
@@ -2330,7 +2330,7 @@ static int path_to_absolute(const char_u *fname, char_u *buf, size_t len, int fo
   // expand it if forced or not an absolute path
   if (force || !path_is_absolute(fname)) {
     p = STRRCHR(fname, '/');
-#ifdef WIN32
+#ifdef MSWIN
     if (p == NULL) {
       p = STRRCHR(fname, '\\');
     }
@@ -2366,7 +2366,7 @@ static int path_to_absolute(const char_u *fname, char_u *buf, size_t len, int fo
 /// @return `TRUE` if "fname" is absolute.
 int path_is_absolute(const char_u *fname)
 {
-#ifdef WIN32
+#ifdef MSWIN
   // A name like "d:/foo" and "//server/share" is absolute
   return ((isalpha(fname[0]) && fname[1] == ':'
            && vim_ispathsep_nocolon(fname[2]))

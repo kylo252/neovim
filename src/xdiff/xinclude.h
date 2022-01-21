@@ -44,7 +44,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-#if !defined(_WIN32)
+#if !defined(MSWIN)
 #include <unistd.h>
 #endif
 #include <string.h>

@@ -785,7 +785,7 @@ err_closing:
 #if defined(UNIX)
     (void)snprintf(cmd, len, "exec %s -dl -f %s", prog, csinfo[i].fname);
 #else
-    // WIN32
+    // MSWIN
     (void)snprintf(cmd, len, "%s -dl -f %s", prog, csinfo[i].fname);
 #endif
     if (csinfo[i].ppath != NULL) {
@@ -837,7 +837,7 @@ err_closing:
   }
 
 #else
-    // WIN32
+    // MSWIN
     // Create a new process to run cscope and use pipes to talk with it
     GetStartupInfo(&si);
     si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;

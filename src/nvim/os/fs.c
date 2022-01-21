@@ -27,7 +27,7 @@
 #include "nvim/path.h"
 #include "nvim/strings.h"
 
-#ifdef WIN32
+#ifdef MSWIN
 # include "nvim/mbyte.h"  // for utf8_to_utf16, utf16_to_utf8
 #endif
 
@@ -138,7 +138,7 @@ bool os_isdir_executable(const char *name)
     return false;
   }
 
-#ifdef WIN32
+#ifdef MSWIN
   return (S_ISDIR(mode));
 #else
   return (S_ISDIR(mode) && (S_IXUSR & mode));
@@ -152,7 +152,7 @@ bool os_isdir_executable(const char *name)
 int os_nodetype(const char *name)
   FUNC_ATTR_NONNULL_ALL
 {
-#ifndef WIN32  // Unix
+#ifndef MSWIN  // Unix
   uv_stat_t statbuf;
   if (0 != os_stat(name, &statbuf)) {
     return NODE_NORMAL;  // File doesn't exist.
@@ -242,7 +242,7 @@ bool os_can_exe(const char *name, char **abspath, bool use_path)
   FUNC_ATTR_NONNULL_ARG(1)
 {
   if (!use_path || gettail_dir(name) != name) {
-#ifdef WIN32
+#ifdef MSWIN
     if (is_executable_ext(name, abspath)) {
 #else
     // Must have path separator, cannot execute files in the current directory.
@@ -271,7 +271,7 @@ static bool is_executable(const char *name, char **abspath)
     return false;
   }
 
-#ifdef WIN32
+#ifdef MSWIN
   // Windows does not have exec bit; just check if the file exists and is not
   // a directory.
   const bool ok = S_ISREG(mode);
@@ -288,7 +288,7 @@ static bool is_executable(const char *name, char **abspath)
   return ok;
 }
 
-#ifdef WIN32
+#ifdef MSWIN
 /// Checks if file `name` is executable under any of these conditions:
 /// - extension is in $PATHEXT and `name` is executable
 /// - result of any $PATHEXT extension appended to `name` is executable
@@ -352,7 +352,7 @@ static bool is_executable_in_path(const char *name, char **abspath)
     return false;
   }
 
-#ifdef WIN32
+#ifdef MSWIN
   // Prepend ".;" to $PATH.
   size_t pathlen = strlen(path_env);
   char *path = memcpy(xmallocz(pathlen + 2), "." ENV_SEPSTR, 2);
@@ -375,7 +375,7 @@ static bool is_executable_in_path(const char *name, char **abspath)
     STRLCPY(buf, p, e - p + 1);
     append_path(buf, name, buf_len);
 
-#ifdef WIN32
+#ifdef MSWIN
     if (is_executable_ext(buf, abspath)) {
 #else
     if (is_executable(buf, abspath)) {
@@ -447,7 +447,7 @@ FILE *os_fopen(const char *path, const char *flags)
     default:
       abort();
     }
-#ifdef WIN32
+#ifdef MSWIN
     if (flags[1] == 'b') {
       iflags |= O_BINARY;
     }
@@ -1176,7 +1176,7 @@ char *os_realpath(const char *name, char *buf)
   return result == kLibuvSuccess ? buf : NULL;
 }
 
-#ifdef WIN32
+#ifdef MSWIN
 # include <shlobj.h>
 
 /// When "fname" is the name of a shortcut (*.lnk) resolve the file it points

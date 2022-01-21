@@ -21,7 +21,7 @@
 #include "nvim/version.h"
 #include "nvim/vim.h"
 
-#ifdef WIN32
+#ifdef MSWIN
 # include "nvim/mbyte.h"  // for utf8_to_utf16, utf16_to_utf8
 #endif
 
@@ -129,7 +129,7 @@ int os_setenv(const char *name, const char *value, int overwrite)
   if (name[0] == '\0') {
     return -1;
   }
-#ifdef WIN32
+#ifdef MSWIN
   if (!overwrite && os_getenv(name) != NULL) {
     return 0;
   }
@@ -144,7 +144,7 @@ int os_setenv(const char *name, const char *value, int overwrite)
 #endif
   uv_mutex_lock(&mutex);
   int r;
-#ifdef WIN32
+#ifdef MSWIN
   // libintl uses getenv() for LC_ALL/LANG/etc., so we must use _putenv_s().
   if (striequal(name, "LC_ALL") || striequal(name, "LANGUAGE")
       || striequal(name, "LANG") || striequal(name, "LC_MESSAGES")) {
@@ -187,7 +187,7 @@ int os_unsetenv(const char *name)
 size_t os_get_fullenv_size(void)
 {
   size_t len = 0;
-#ifdef _WIN32
+#ifdef MSWIN
   wchar_t *envstrings = GetEnvironmentStringsW();
   wchar_t *p = envstrings;
   size_t l;
@@ -236,7 +236,7 @@ void os_free_fullenv(char **env)
 /// @param  env_size  size of `env`, @see os_fullenv_size
 void os_copy_fullenv(char **env, size_t env_size)
 {
-#ifdef _WIN32
+#ifdef _MSWIN
   wchar_t *envstrings = GetEnvironmentStringsW();
   if (!envstrings) {
     return;
@@ -281,7 +281,7 @@ void os_copy_fullenv(char **env, size_t env_size)
 /// @return [allocated] environment variable's value, or NULL
 char *os_getenvname_at_index(size_t index)
 {
-#ifdef _WIN32
+#ifdef _MSWIN
   wchar_t *envstrings = GetEnvironmentStringsW();
   if (!envstrings) {
     return NULL;
@@ -348,7 +348,7 @@ char *os_getenvname_at_index(size_t index)
 /// @return the process ID.
 int64_t os_get_pid(void)
 {
-#ifdef _WIN32
+#ifdef _MSWIN
   return (int64_t)GetCurrentProcessId();
 #else
   return (int64_t)getpid();
@@ -369,7 +369,7 @@ void os_get_hostname(char *hostname, size_t size)
   } else {
     xstrlcpy(hostname, vutsname.nodename, size);
   }
-#elif defined(WIN32)
+#elif defined(MSWIN)
   wchar_t host_utf16[MAX_COMPUTERNAME_LENGTH + 1];
   DWORD host_wsize = sizeof(host_utf16) / sizeof(host_utf16[0]);
   if (GetComputerNameW(host_utf16, &host_wsize) == 0) {
@@ -419,7 +419,7 @@ void init_homedir(void)
 
   const char *var = os_getenv("HOME");
 
-#ifdef WIN32
+#ifdef MSWIN
   // Typically, $HOME is not defined on Windows, unless the user has
   // specifically defined it for Vim's sake. However, on Windows NT
   // platforms, $HOMEDRIVE and $HOMEPATH are automatically defined for
@@ -903,7 +903,7 @@ char *vim_getenv(const char *name)
   // init_path() should have been called before now.
   assert(get_vim_var_str(VV_PROGPATH)[0] != NUL);
 
-#ifdef WIN32
+#ifdef MSWIN
   if (strcmp(name, "HOME") == 0) {
     return xstrdup(homedir);
   }
@@ -1059,7 +1059,7 @@ size_t home_replace(const buf_T *const buf, const char_u *src, char_u *const dst
   }
 
   const char *homedir_env = os_getenv("HOME");
-#ifdef WIN32
+#ifdef MSWIN
   if (homedir_env == NULL) {
     homedir_env = os_getenv("USERPROFILE");
   }
@@ -1182,7 +1182,7 @@ char_u *get_env_name(expand_T *xp, int idx)
 bool os_setenv_append_path(const char *fname)
   FUNC_ATTR_NONNULL_ALL
 {
-#ifdef WIN32
+#ifdef MSWIN
 // 8191 (plus NUL) is considered the practical maximum.
 # define MAX_ENVPATHLEN 8192
 #else
