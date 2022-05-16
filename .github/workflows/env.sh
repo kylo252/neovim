@@ -19,6 +19,7 @@ NVIM_LOG_FILE=$GITHUB_WORKSPACE/build/.nvimlog
 VALGRIND_LOG=$GITHUB_WORKSPACE/build/log/valgrind-%p.log
 CACHE_NVIM_DEPS_DIR=$HOME/.cache/nvim-deps
 CACHE_MARKER=$HOME/.cache/nvim-deps/.ci_cache_marker
+CACHE_UNCRUSTIFY=$HOME/.cache/uncrustify
 CCACHE_BASEDIR=$GITHUB_WORKSPACE
 CCACHE_COMPRESS=1
 CCACHE_SLOPPINESS=time_macros,file_macro

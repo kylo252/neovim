@@ -66,6 +66,32 @@ jobs:
             ninja-build \
             pkg-config
 
+
+      - name: Cache uncrustify
+        id: cache-uncrustify
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.CACHE_UNCRUSTIFY }}
+          key: "uncrustify2"
+
+      - name: Clone uncrustify
+        if: steps.cache-uncrustify.outputs.cache-hit != 'true'
+        uses: actions/checkout@v2
+        with:
+          repository: uncrustify/uncrustify
+          ref: 'uncrustify-0.75.0'
+
+      - name: Install uncrustify
+        if: steps.cache-uncrustify.outputs.cache-hit != 'true'
+        run: |
+          source_dir=$GITHUB_WORKSPACE/uncrustify
+          build_dir=$GITHUB_WORKSPACE/uncrustify/build
+          echo $GITHUB_WORKSPACE
+          pwd
+          cmake -S $source_dir -B $build_dir -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build $build_dir
+          cp $build_dir/uncrustify ${{ env.CACHE_UNCRUSTIFY }}
+
       - name: Cache artifacts
         uses: actions/cache@v2
         with:
@@ -90,6 +116,11 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --check runtime/
+
+      - if: "!cancelled()"
+        name: uncrustify
+        run: |
+          ./scripts/run_uncrustify.sh --base-sha ${{ github.event.pull_request.base.sha }}
 
       - if: "!cancelled()"
         name: lualint
