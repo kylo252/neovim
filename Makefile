@@ -14,6 +14,7 @@ CMAKE_BUILD_TYPE ?= Debug
 CMAKE_FLAGS := -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE)
 # Extra CMake flags which extend the default set
 CMAKE_EXTRA_FLAGS ?=
+CTEST_EXTRA_FLAG  ?= --progress --output-on-failure
 NVIM_PRG := $(MAKEFILE_DIR)/build/bin/nvim
 
 # CMAKE_INSTALL_PREFIX
@@ -137,8 +138,14 @@ helphtml: | nvim build/runtime/doc/tags
 functionaltest functionaltest-lua unittest benchmark: | nvim
 	$(BUILD_TOOL) -C build $@
 
-lintlua lintsh lintpy lintuncrustify lintc lintcfull check-single-includes generated-sources lintcommit lint: | build/.ran-cmake
+lintlua lintsh lintpy lintc lintcfull check-single-includes generated-sources lint: | build/.ran-cmake
 	$(CMAKE_PRG) --build build --target $@
+
+lintuncrustify:
+	ctest --test-dir build -R lintuncrustify $(CTEST_EXTRA_FLAG)
+
+lintcommit:
+	ctest --test-dir build -R lintcommit $(CTEST_EXTRA_FLAG)
 
 test: functionaltest unittest
 
@@ -174,4 +181,4 @@ $(DEPS_BUILD_DIR)/%: phony_force
 	$(BUILD_TOOL) -C $(DEPS_BUILD_DIR) $(patsubst $(DEPS_BUILD_DIR)/%,%,$@)
 endif
 
-.PHONY: test lintlua lintpy lintsh functionaltest unittest lint lintc clean distclean nvim libnvim cmake deps install appimage checkprefix lintcommit
+.PHONY: test lintlua lintpy lintsh functionaltest unittest lint lintc clean distclean nvim libnvim cmake deps install appimage checkprefix lintcommit lintuncrustify

@@ -663,7 +663,7 @@ add_custom_target(lintcommit
 add_dependencies(lintcommit nvim)
 
 add_custom_target(lint)
-add_dependencies(lint check-single-includes lintc lintlua lintpy lintsh lintcommit lintuncrustify)
+add_dependencies(lint check-single-includes lintc lintlua lintpy lintsh)
 
 install_helper(
   FILES ${CMAKE_SOURCE_DIR}/src/man/nvim.1
@@ -673,12 +673,13 @@ install_helper(
 # Go down the tree.
 #
 
+enable_testing()
 add_subdirectory(src/nvim)
 get_directory_property(NVIM_VERSION_CFLAGS DIRECTORY src/nvim DEFINITION NVIM_VERSION_CFLAGS)
-add_subdirectory(test/includes)
 add_subdirectory(cmake.config)
-add_subdirectory(test/functional/fixtures)  # compile test programs
 add_subdirectory(runtime)
+# must be set after all the targets have been configured
+add_subdirectory(test)
 get_directory_property(GENERATED_HELP_TAGS DIRECTORY runtime DEFINITION GENERATED_HELP_TAGS)
 if(WIN32)
   install_helper(

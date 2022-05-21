@@ -130,6 +130,12 @@ glob_wrapper(UNIT_TEST_FIXTURES ${PROJECT_SOURCE_DIR}/test/unit/fixtures/*.c)
 list(SORT NVIM_SOURCES)
 list(SORT NVIM_HEADERS)
 
+add_library(nvim_sources INTERFACE)
+target_sources(nvim_sources INTERFACE ${NVIM_SOURCES})
+
+add_library(nvim_headers INTERFACE)
+target_sources(nvim_headers INTERFACE ${NVIM_HEADERS})
+
 list(APPEND LINT_NVIM_SOURCES ${NVIM_SOURCES} ${NVIM_HEADERS})
 
 foreach(sfile ${NVIM_SOURCES})
@@ -803,19 +809,12 @@ foreach(sfile ${LINT_NVIM_SOURCES})
 endforeach()
 add_custom_target(lintc DEPENDS ${LINT_TARGETS})
 
-add_glob_targets(
-  TARGET lintuncrustify
-  COMMAND ${UNCRUSTIFY_PRG}
-  FLAGS -c "${PROJECT_SOURCE_DIR}/src/uncrustify.cfg" -q --check
-  FILES ${LINT_NVIM_SOURCES}
-  )
-
 add_custom_target(
   lintcfull
   COMMAND
     ${LINT_PRG} --suppress-errors=${LINT_SUPPRESS_FILE} --output=${LINT_OUTPUT_FORMAT} ${LINT_NVIM_REL_SOURCES}
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  DEPENDS ${LINT_PRG} ${LINT_NVIM_SOURCES} ${LINT_SUPPRESS_FILE} lintuncrustify
+  DEPENDS ${LINT_PRG} ${LINT_NVIM_SOURCES} ${LINT_SUPPRESS_FILE}
 )
 
 add_custom_target(generated-sources DEPENDS
