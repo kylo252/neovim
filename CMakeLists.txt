@@ -654,7 +654,8 @@ install_helper(
 
 add_subdirectory(src/nvim)
 get_directory_property(NVIM_VERSION_CFLAGS DIRECTORY src/nvim DEFINITION NVIM_VERSION_CFLAGS)
-add_subdirectory(test/includes)
+enable_testing()
+add_subdirectory(test)
 add_subdirectory(config)
 add_subdirectory(test/functional/fixtures)  # compile test programs
 add_subdirectory(runtime)
