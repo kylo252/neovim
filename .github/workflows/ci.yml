@@ -82,7 +82,9 @@ jobs:
           build_dir=uncrustify/build
           cmake -S $source_dir -B $build_dir -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build $build_dir
-          mkdir -p $HOME/.cache
+          cmake --install $build_dir --prefix "$HOME/.local"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          mkdir -p "$HOME/.cache"
           cp $build_dir/uncrustify ${{ env.CACHE_UNCRUSTIFY }}
 
       - name: Cache artifacts
@@ -103,21 +105,22 @@ jobs:
           args: --check runtime/
 
       - if: "!cancelled()"
-        name: lintlua
-        run: make lintlua
+        name: luacheck
+        run: ctest --test-dir ${BUILD_DIR} -R luacheck --output-junit lintluacheck.xml
 
       - if: "!cancelled()"
         name: lintpy
-        run: make lintpy
+        run: ctest --test-dir ${BUILD_DIR} -R lintpy --output-junit lintpy.xml
 
       - if: "!cancelled()"
         name: lintsh
-        run: make lintsh
+        run: ctest --test-dir ${BUILD_DIR} -R lintsh --output-junit lintsh.xml
 
       - if: "!cancelled()"
-        name: uncrustify
-        run: |
-          ${{ env.CACHE_UNCRUSTIFY }} -c ./src/uncrustify.cfg -q --replace --no-backup $(find ./src/nvim -name "*.[ch]")
+        name: lintc
+        env:
+          NVIM_GIT_BASEREF: "origin/master"
+        run: ctest --test-dir ${BUILD_DIR} -R lintc-changed-only --output-junit lintc.xml
 
       - if: "!cancelled()"
         name: suggester / uncrustify

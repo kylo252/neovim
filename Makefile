@@ -14,6 +14,7 @@ CMAKE_BUILD_TYPE ?= Debug
 CMAKE_FLAGS := -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE)
 # Extra CMake flags which extend the default set
 CMAKE_EXTRA_FLAGS ?=
+CTEST_EXTRA_FLAG  ?= --progress --output-on-failure
 NVIM_PRG := $(MAKEFILE_DIR)/build/bin/nvim
 
 # CMAKE_INSTALL_PREFIX
@@ -130,8 +131,20 @@ src/nvim/testdir/%.vim: phony_force
 functionaltest functionaltest-lua unittest benchmark: | nvim
 	$(BUILD_TOOL) -C build $@
 
-lintlua lintsh lintpy lintuncrustify lintc lintcfull check-single-includes generated-sources lintcommit lint formatc formatlua format: | build/.ran-cmake
+check-single-includes generated-sources formatc formatlua format: | build/.ran-cmake
 	$(CMAKE_PRG) --build build --target $@
+
+build/CTestTestfile.cmake:
+	$(CMAKE_PRG) -S . -B build
+
+lintlua lintsh lintpy lintcommit: build/CTestTestfile.cmake
+	ctest --test-dir build $(CTEST_EXTRA_FLAG) -R $@
+
+lintc: build/CTestTestfile.cmake
+	ctest --test-dir build $(CTEST_EXTRA_FLAG) -R lintc-changed-only
+
+lintcfull: build/CTestTestfile.cmake
+	ctest --test-dir build $(CTEST_EXTRA_FLAG) -L 'lintcfull'
 
 test: functionaltest unittest
 
