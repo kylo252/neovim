@@ -260,6 +260,12 @@ jobs:
         name: Install nvim
         run: ./ci/run_tests.sh install_nvim
 
+      - if: "!cancelled()"
+        name: Ctest demo
+        run: |
+          cmake --build $GITHUB_WORKSPACE/build --target generate-test-runners
+          cd $GITHUB_WORKSPACE/build && ctest -N && ctest -j`nproc`
+
       - name: Cache dependencies
         run: ./ci/before_cache.sh
 

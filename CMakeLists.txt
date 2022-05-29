@@ -655,7 +655,6 @@ install_helper(
 add_subdirectory(src/nvim)
 get_directory_property(NVIM_VERSION_CFLAGS DIRECTORY src/nvim DEFINITION NVIM_VERSION_CFLAGS)
 enable_testing()
-add_subdirectory(test)
 add_subdirectory(config)
 add_subdirectory(test/functional/fixtures)  # compile test programs
 add_subdirectory(runtime)
@@ -742,6 +741,9 @@ if(BUSTED_PRG)
     DEPENDS ${BENCHMARK_PREREQS}
     ${TEST_TARGET_ARGS})
   set_target_properties(benchmark PROPERTIES FOLDER test)
+
+  # needs to be run after defining unittest-prereqs
+  add_subdirectory(test)
 endif()
 
 if(BUSTED_LUA_PRG)
