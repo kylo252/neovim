@@ -1,6 +1,5 @@
 add_subdirectory(includes)
 
-
 #################################
 ########## test specs ###########
 #################################
@@ -42,19 +41,22 @@ add_subdirectory(includes)
 #   # -E env "TEST_FILE=test/functional/api/buffer_spec.lua" ## doesn't work
 # )
 
-target_sources(
-  unittest-prereqs PRIVATE
-  ${PROJECT_SOURCE_DIR}/test/unit/buffer_spec.lua
-  # ${PROJECT_SOURCE_DIR}/test/functional/api/buffer_spec.lua
-  # ${PROJECT_SOURCE_DIR}/test/functional/terminal/buffer_spec.lua
-  # ${PROJECT_SOURCE_DIR}/test/functional/legacy/prompt_buffer_spec.lua
-  # ${PROJECT_SOURCE_DIR}/test/functional/legacy/005_bufleave_delete_buffer_spec.lua
+# TODO: specify *all* the luarocks requirements for tests
+
+add_custom_target(
+  generate-test-runners
+  DEPENDS ${UNITTEST_PREREQS} ${FUNCTIONALTEST_PREREQS}
+  SOURCES ${PROJECT_SOURCE_DIR}/test/functional/plugin/lsp_spec.lua
+  ${PROJECT_SOURCE_DIR}/test/functional/api/buffer_spec.lua
+  ${PROJECT_SOURCE_DIR}/test/functional/terminal/buffer_spec.lua
 )
 
 include(LuaBusted)
 busted_discover_tests(
-  unittest-prereqs
+  generate-test-runners
   BUSTED_PRG ${BUSTED_PRG}
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   LUA_PRG ${LUA_PRG}
+  BUILD_DIR ${PROJECT_BINARY_DIR}
+  USE_RUNTESTS OFF
 )

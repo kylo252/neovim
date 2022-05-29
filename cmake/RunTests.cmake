@@ -37,6 +37,8 @@ endif()
 
 if(BUSTED_OUTPUT_TYPE STREQUAL junit)
   set(EXTRA_ARGS OUTPUT_FILE ${BUILD_DIR}/${TEST_TYPE}test-junit.xml)
+elseif(NOT BUSTED_OUTPUT_TYPE)
+  set(BUSTED_OUTPUT_TYPE nvim)
 endif()
 
 if(DEFINED ENV{BUSTED_ARGS})
@@ -89,7 +91,8 @@ execute_process(
   WORKING_DIRECTORY ${WORKING_DIR}
   ERROR_VARIABLE err
   RESULT_VARIABLE res
-  ${EXTRA_ARGS})
+  ${EXTRA_ARGS}
+  )
 
 file(GLOB RM_FILES ${BUILD_DIR}/Xtest_*)
 file(REMOVE_RECURSE ${RM_FILES})
