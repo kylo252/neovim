@@ -33,7 +33,7 @@ if(NOT EXISTS "${SPEC_FILE}")
 endif()
 
 execute_process(
-  COMMAND ${BUSTED_PRG} ${SPEC_FILE} --list
+  COMMAND ${BUSTED_PRG} ${SPEC_FILE} --list ${extra_args}
   OUTPUT_VARIABLE output
   RESULT_VARIABLE result
   WORKING_DIRECTORY "${WORKING_DIR}"
@@ -64,40 +64,20 @@ foreach(line ${output})
 
   string(REGEX REPLACE "[^A-Za-z0-9]" "." test_filter ${testname_clean})
 
-  set(extra_args "")
   if(BUSTED_ARGS)
     list(APPEND extra_args "--output=${OUTPUT_HANDLER}")
   endif()
 
   separate_arguments(extra_args)
 
-  if(USE_RUNTESTS)
-    add_command(
-      add_test
-      "${guarded_testname}"
-      ${CMAKE_COMMAND}
-      -DBUSTED_PRG=${BUSTED_PRG}
-      -DLUA_PRG=${LUA_PRG}
-      -DNVIM_PRG=$<TARGET_FILE:nvim>
-      -DWORKING_DIR=${WORKING_DIR}
-      -DTEST_DIR=${WORKING_DIR}/test
-      -DBUILD_DIR=${BUILD_DIR}
-      -DTEST_TYPE=functional
-      -DTEST_FILTER=${test_filter}
-      -DBUSTED_ARGS=${extra_args}
-      -DTEST_PATH=${SPEC_FILE}
-      -P ${WORKING_DIR}/cmake/RunTests.cmake
-    )
-  else()
-    add_command(
-      add_test
-      "${guarded_testname}"
-      ${BUSTED_PRG}
-      ${SPEC_FILE}
-      --filter=${test_filter}
-      ${extra_args}
-    )
-  endif()
+  add_command(
+    add_test
+    "${guarded_testname}"
+    ${BUSTED_PRG}
+    ${SPEC_FILE}
+    --filter=${test_filter}
+    ${extra_args}
+  )
 
   add_command(
     set_tests_properties

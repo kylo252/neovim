@@ -27,9 +27,11 @@ function(busted_discover_tests TARGET)
   get_target_property(SPEC_FILES ${TARGET} SOURCES)
 
   foreach(SPEC_FILE ${SPEC_FILES})
-    set(ctest_file_base "${CMAKE_CURRENT_BINARY_DIR}/${SPEC_FILE}[${counter}]")
-    set(ctest_include_file "${ctest_file_base}_include.cmake")
-    set(ctest_tests_file "${ctest_file_base}_tests.cmake")
+    get_filename_component(ctest_file_base ${SPEC_FILE} NAME_WLE CACHE)
+    set(ctest_include_file "${CMAKE_CURRENT_BINARY_DIR}/${ctest_file_base}_include.cmake")
+    set(ctest_tests_file "${CMAKE_CURRENT_BINARY_DIR}/${ctest_file_base}_tests.cmake")
+
+    # message("got ${ctest_file_base} ${ctest_file_dir} ${spec_file_relative}")
 
     add_custom_command(
       TARGET ${TARGET} PRE_BUILD
