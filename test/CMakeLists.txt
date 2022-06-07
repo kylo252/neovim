@@ -47,8 +47,6 @@ add_custom_target(
   generate-test-runners
   DEPENDS ${UNITTEST_PREREQS} ${FUNCTIONALTEST_PREREQS}
   SOURCES ${PROJECT_SOURCE_DIR}/test/functional/plugin/lsp_spec.lua
-  ${PROJECT_SOURCE_DIR}/test/functional/api/buffer_spec.lua
-  ${PROJECT_SOURCE_DIR}/test/functional/terminal/buffer_spec.lua
 )
 
 include(LuaBusted)
@@ -59,4 +57,5 @@ busted_discover_tests(
   LUA_PRG ${LUA_PRG}
   BUILD_DIR ${PROJECT_BINARY_DIR}
   USE_RUNTESTS OFF
+  EXTRA_ARGS -Xhelper IS_FUNCTIONAL_TEST
 )
