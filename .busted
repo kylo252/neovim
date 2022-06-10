@@ -11,7 +11,7 @@ return {
   ---
   functional = {
     ROOT = { 'test/functional' },
-    Xhelper = { 'IS_FUNCIONAL_TEST' },
+    Xhelper = { 'IS_FUNCTIONAL_TEST' },
   },
   ---
   unit = {

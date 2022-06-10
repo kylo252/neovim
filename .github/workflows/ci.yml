@@ -264,7 +264,7 @@ jobs:
         name: Ctest demo
         run: |
           cmake --build $GITHUB_WORKSPACE/build --target generate-test-runners
-          cd $GITHUB_WORKSPACE/build && ctest -N && ctest -j`nproc`
+          cd $GITHUB_WORKSPACE/build && ctest -N && ctest -j`nproc` --output-on-failure
 
       - name: Cache dependencies
         run: ./ci/before_cache.sh

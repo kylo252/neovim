@@ -25,15 +25,24 @@ function(add_command NAME)
 endfunction()
 
 # Run test executable to get list of available tests
-if(NOT EXISTS "${SPEC_FILE}")
+if(NOT EXISTS "${SPEC_ROOT}")
   message(
     FATAL_ERROR
-    "Specified test file '${SPEC_FILE}' does not exist"
+    "Specified test file '${SPEC_ROOT}' does not exist"
   )
 endif()
 
+get_filename_component(suite ${SPEC_ROOT} NAME_WLE CACHE)
+
+# This is useful to avoid long paths issues
+file(RELATIVE_PATH SPEC_ROOT_RELATIVE "${WORKING_DIR}" "${SPEC_ROOT}")
+
+# if(IS_ABSOLUTE ${SPEC_ROOT})
+#   file(RELATIVE_PATH SPEC_ROOT "${WORKING_DIR}" "${SPEC_ROOT}")
+# endif()
+
 execute_process(
-  COMMAND ${BUSTED_PRG} ${SPEC_FILE} --list ${extra_args}
+  COMMAND ${BUSTED_PRG} ${SPEC_ROOT_RELATIVE} --list ${extra_args}
   OUTPUT_VARIABLE output
   RESULT_VARIABLE result
   WORKING_DIRECTORY "${WORKING_DIR}"
@@ -42,7 +51,7 @@ execute_process(
 if(NOT ${result} EQUAL 0)
   message(
     FATAL_ERROR
-    "Error running test file '${SPEC_FILE}':\n"
+    "Error running test file '${SPEC_ROOT_RELATIVE}':\n"
     "  Result: ${result}\n"
     "  Output: ${output}\n"
   )
@@ -52,21 +61,19 @@ string(REPLACE "\n" ";" output "${output}")
 
 # Parse output
 foreach(line ${output})
-  string(REGEX REPLACE "\\.( *#.*)?$" "" suite "${SPEC_FILE}")
   string(REGEX REPLACE ".*:[0-9]+: (.*)" "\\1" testname ${line})
-  # Escape characters in test case names that would be parsed by Catch2
-  foreach(char , [ ])
-    string(REPLACE ${char} "\\${char}" testname ${testname})
-  endforeach(char)
-  string(REGEX REPLACE "[^A-Za-z0-9_.]" "_" testname_clean ${testname})
+
+  # Escape certain problematic characters
+  string(REGEX REPLACE "[^-+./:a-zA-Z0-9_]" "." testname_clean ${testname})
   set(guarded_testname "${prefix}${testname_clean}${suffix}")
 
-
-  string(REGEX REPLACE "[^A-Za-z0-9]" "." test_filter ${testname_clean})
+  # busted allows using wildcards
+  string(REGEX REPLACE "[-+]" "." test_filter ${testname_clean})
 
   if(BUSTED_ARGS)
     list(APPEND extra_args "--output=${OUTPUT_HANDLER}")
   endif()
+
 
   separate_arguments(extra_args)
 
@@ -74,7 +81,7 @@ foreach(line ${output})
     add_test
     "${guarded_testname}"
     ${BUSTED_PRG}
-    ${SPEC_FILE}
+    ${SPEC_ROOT_RELATIVE}
     --filter=${test_filter}
     ${extra_args}
   )
@@ -84,6 +91,9 @@ foreach(line ${output})
     "${guarded_testname}"
     PROPERTIES
     WORKING_DIRECTORY "${WORKING_DIR}"
+    REQUIRED_FILES "${SPEC_ROOT_RELATIVE}"
+    LABELS "${suite}"
+    ENVIRONMENT "${TEST_ENVIRONMENT}"
     ${TEST_PROPERTIES}
   )
   list(APPEND tests "${guarded_testname}")
