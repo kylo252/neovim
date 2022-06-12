@@ -6,6 +6,13 @@ add_subdirectory(includes)
 ########## test specs ###########
 #################################
 
+set(ENV{LC_ALL} "en_US.UTF-8")
+
+if(POLICY CMP0012)
+  # Handle CI=true, without dev warnings.
+  cmake_policy(SET CMP0012 NEW)
+endif()
+
 file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/test/Xtest_xdg/cache")
 file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/test/Xtest_xdg/config")
 file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/test/Xtest_xdg/share")
@@ -35,10 +42,13 @@ add_custom_target(
 
 include(LuaBusted)
 
+set(NVIM_PRG $<TARGET_FILE:nvim>)
+
 set(test_env)
 list(
   APPEND test_env
   "LC_ALL=en_US.UTF-8"
+  "NVIM_PRG=${NVIM_PRG}"
   "NEOVIM_BUILD_DIR=${PROJECT_BINARY_DIR}"
   "NEOVIM_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
   "VIMRUNTIME=${PROJECT_SOURCE_DIR}/runtime"
@@ -46,6 +56,7 @@ list(
   "XDG_CACHE_HOME=${PROJECT_BINARY_DIR}/test/Xtest_xdg/cache"
   "XDG_CONFIG_HOME=${PROJECT_BINARY_DIR}/test/Xtest_xdg/config"
   "XDG_DATA_HOME=${PROJECT_BINARY_DIR}/test/Xtest_xdg/share"
+  "TMPDIR=${PROJECT_BINARY_DIR}/test/Xtest_tmpdir"
 )
 
 busted_discover_tests(

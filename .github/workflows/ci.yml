@@ -260,11 +260,14 @@ jobs:
         name: Install nvim
         run: ./ci/run_tests.sh install_nvim
 
-      - if: "!cancelled()"
+      - if: matrix.flavor != 'tsan' && matrix.flavor != 'functionaltest-lua' && !cancelled()
         name: Ctest demo
         run: |
           cmake --build $GITHUB_WORKSPACE/build --target generate-test-runners
-          cd $GITHUB_WORKSPACE/build && ctest -N && ctest -j`nproc` --output-on-failure
+          set +e
+          ctest --test-dir $GITHUB_WORKSPACE/build -j`nproc` --output-on-failure --timeout 60 || should_rerun=true
+          [[ -n "$should_rerun" ]] && ctest --test-dir $GITHUB_WORKSPACE/build --output-on-failure --timeout 600 -VV
+          set -e
 
       - name: Cache dependencies
         run: ./ci/before_cache.sh

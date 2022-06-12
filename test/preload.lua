@@ -14,7 +14,7 @@ for _, value in pairs(_G.arg) do
 end
 
 local luv = require('luv')
-local fs = require'vim.fs'
+-- NOTE: os_setenv() isn't thread-safe according to luv's docs
 
 local function is_file(filename)
   local stat = luv.fs_stat(filename)
@@ -32,35 +32,31 @@ local function join_paths(...)
   return result
 end
 
-local NVIM_TMPDIR = join_paths(luv.os_tmpdir(), 'Xtest_nvim')
-if not is_directory(NVIM_TMPDIR) then
-  luv.fs_mkdir(NVIM_TMPDIR, tonumber('755', 8))
+local NVIM_TEST_TMPDIR = os.getenv('NVIM_TEST_TMPDIR')
+if not NVIM_TEST_TMPDIR or not is_directory(NVIM_TEST_TMPDIR) then
+  NVIM_TEST_TMPDIR = luv.fs_mkdtemp(join_paths(luv.os_tmpdir(), 'Xtest_nvim.XXXXXXXXXX'))
 end
+luv.os_setenv('NVIM_TEST_TMPDIR', NVIM_TEST_TMPDIR)
 
-local TMPDIR = os.getenv('TMPDIR') and os.getenv('TMPDIR') or os.getenv('TEMP')
-if not TMPDIR or not is_directory(TMPDIR) then
-  TMPDIR = luv.fs_mkdtemp(join_paths(NVIM_TMPDIR, 'tmp.XXXXXXXXXX'))
-  luv.os_setenv('TMPDIR', TMPDIR)
-end
-
-local function tmpdir_get()
-  return TMPDIR
-end
+--[[
+  TODO(kylo252): we should probably override TMPDIR dynamically per test regardless,
+  but that seems to cause issues for rpc tests where TMPDIR isn't passed along
+  -- luv.os_setenv('TMPDIR', NVIM_TEST_TMPDIR)
+--]]
 
 local NVIM_LOG_FILE = os.getenv('NVIM_LOG_FILE')
 if not NVIM_LOG_FILE or not is_file(NVIM_LOG_FILE) then
-  local _, tmpfile = luv.fs_mkstemp(join_paths(tmpdir_get(), 'nvim_log.XXXXXXXXXX'))
-  -- NOTE: this isn't thread-safe according to luv's docs
+  local _, tmpfile = luv.fs_mkstemp(join_paths(NVIM_TEST_TMPDIR, 'nvim_log.XXXXXXXXXX'))
   luv.os_setenv('NVIM_LOG_FILE', tmpfile)
 end
 
 luv.os_unsetenv('XDG_DATA_DIRS')
 luv.os_unsetenv('NVIM')
 
+local fs = require('vim.fs')
 fs.join_paths = join_paths
 fs.is_file = is_file
 fs.is_directory = is_directory
-fs.NVIM_TMPDIR = NVIM_TMPDIR
 
 local global_helpers = require('test.helpers')
 
