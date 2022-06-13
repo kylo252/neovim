@@ -1,0 +1,4 @@
+set(CTEST_CUSTOM_PRE_TEST  "cmake -E make_directory @NVIM_TEST_TMPDIR@")
+set(CTEST_CUSTOM_POST_TEST  "cmake -E rm -rf @NVIM_TEST_TMPDIR@")
+
+# vim: ft=cmake

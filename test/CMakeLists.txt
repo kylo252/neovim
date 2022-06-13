@@ -44,6 +44,8 @@ include(LuaBusted)
 
 set(NVIM_PRG $<TARGET_FILE:nvim>)
 
+set(NVIM_TEST_TMPDIR ${PROJECT_BINARY_DIR}/test/Xtest_tmpdir)
+
 set(test_env)
 list(
   APPEND test_env
@@ -57,6 +59,7 @@ list(
   "XDG_CONFIG_HOME=${PROJECT_BINARY_DIR}/test/Xtest_xdg/config"
   "XDG_DATA_HOME=${PROJECT_BINARY_DIR}/test/Xtest_xdg/share"
   "TMPDIR=${PROJECT_BINARY_DIR}/test/Xtest_tmpdir"
+  "NVIM_TEST_TMPDIR=${NVIM_TEST_TMPDIR}"
 )
 
 busted_discover_tests(
@@ -68,3 +71,5 @@ busted_discover_tests(
   EXTRA_ARGS -Xhelper IS_FUNCTIONAL_TEST
   TEST_ENVIRONMENT ${test_env}
 )
+
+configure_file(CTestCustom.in ${CMAKE_BINARY_DIR}/CTestCustom.cmake)
