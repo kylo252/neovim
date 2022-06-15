@@ -91,7 +91,6 @@ foreach(line ${output})
     "${guarded_testname}"
     PROPERTIES
     WORKING_DIRECTORY "${WORKING_DIR}"
-    REQUIRED_FILES "${SPEC_ROOT_RELATIVE}"
     LABELS "${suite}"
     ENVIRONMENT "${TEST_ENVIRONMENT}"
     ${TEST_PROPERTIES}

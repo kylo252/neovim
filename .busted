@@ -2,8 +2,6 @@
 
 return {
   _all = {
-    verbose = true,
-    lazy = true,
     helper = 'test/preload.lua',
     lpath = 'build/?.lua;runtime/lua/?.lua;./?.lua',
     output = 'test.busted.outputHandlers.nvim',
@@ -11,6 +9,11 @@ return {
   ---
   functional = {
     ROOT = { 'test/functional' },
+    Xhelper = { 'IS_FUNCTIONAL_TEST' },
+  },
+  ----
+  functionalApi = {
+    ROOT = { 'test/functional/api' },
     Xhelper = { 'IS_FUNCTIONAL_TEST' },
   },
   ---
