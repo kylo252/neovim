@@ -268,15 +268,13 @@ jobs:
       - if: matrix.flavor != 'tsan' && matrix.flavor != 'functionaltest-lua' && !cancelled()
         name: Ctest benchmark 1
         run: |
-          set +e
-          ctest --test-dir $GITHUB_WORKSPACE/build -j$(nproc) --output-on-failure --timeout 60 -LE apiSerial || should_rerun=true
-          [[ -n "$should_rerun" ]] && ctest --test-dir $GITHUB_WORKSPACE/build --output-on-failure --timeout 600 -VV
-          set -e
+          NP=$(node -r os -e 'process.stdout.write(os.cpus().length.toString())' 2>/dev/null || echo "2")
+          ctest --test-dir $GITHUB_WORKSPACE/build -j${NP} --output-on-failure --timeout 10 -LE '[S-s]erial'
 
       - if: matrix.flavor != 'tsan' && matrix.flavor != 'functionaltest-lua' && !cancelled()
         name: Ctest benchmark 2
         run: |
-          ctest --test-dir $GITHUB_WORKSPACE/build -j$(nproc) --output-on-failure -L apiSerial
+          ctest --test-dir $GITHUB_WORKSPACE/build --output-on-failure -L '[S-s]erial'
 
       - name: Cache dependencies
         run: ./ci/before_cache.sh
