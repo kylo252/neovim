@@ -8,37 +8,6 @@ add_subdirectory(includes)
 ########## test specs ###########
 #################################
 
-# add_test(
-#   NAME TestBufferUnit
-#   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-#   COMMAND ${CMAKE_COMMAND}
-#   -DBUSTED_PRG=${BUSTED_PRG}
-#   -DLUA_PRG=${LUA_PRG}
-#   -DWORKING_DIR=${PROJECT_SOURCE_DIR}
-#   -DBUSTED_OUTPUT_TYPE=${BUSTED_OUTPUT_TYPE}
-#   -DTEST_DIR=${PROJECT_SOURCE_DIR}/test
-#   -DBUILD_DIR=${CMAKE_BINARY_DIR}
-#   -DTEST_TYPE=unit
-#   -DTEST_PATH=test/unit/buffer_spec.lua
-#   -P ${PROJECT_SOURCE_DIR}/cmake/RunTests.cmake
-# )
-
-# add_test(
-#   NAME TestApiFunctional
-#   COMMAND ${CMAKE_COMMAND}
-#   -DBUSTED_PRG=${BUSTED_PRG}
-#   -DLUA_PRG=${LUA_PRG}
-#   -DNVIM_PRG=$<TARGET_FILE:nvim>
-#   -DWORKING_DIR=${PROJECT_SOURCE_DIR}
-#   -DBUSTED_OUTPUT_TYPE=${BUSTED_OUTPUT_TYPE}
-#   -DTEST_DIR=${PROJECT_SOURCE_DIR}/test
-#   -DBUILD_DIR=${CMAKE_BINARY_DIR}
-#   -DTEST_TYPE=functional
-#   -DTEST_PATH=test/functional/api/buffer_spec.lua
-#   -P ${PROJECT_SOURCE_DIR}/cmake/RunTests.cmake
-#   # -E env "TEST_FILE=test/functional/api/buffer_spec.lua" ## doesn't work
-# )
-
 set(ENV{LC_ALL} "en_US.UTF-8")
 
 if(POLICY CMP0012)
@@ -49,12 +18,13 @@ endif()
 file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/test/Xtest_xdg/cache")
 file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/test/Xtest_xdg/config")
 file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/test/Xtest_xdg/share")
+file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/test/Xtest_xdg/state")
 file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/test/Xtest_tmpdir")
 
 # TODO: this currently doesn't work for test/unit because test/unit/helper.lua is loading all the tests instead
 add_custom_target(
   generate-test-runners
-  DEPENDS ${UNITTEST_PREREQS} ${FUNCTIONALTEST_PREREQS}
+  DEPENDS ${FUNCTIONALTEST_PREREQS}
   SOURCES ${PROJECT_SOURCE_DIR}/test/functional/api/autocmd_spec.lua
   ${PROJECT_SOURCE_DIR}/test/functional/api/buffer_spec.lua
   ${PROJECT_SOURCE_DIR}/test/functional/api/buffer_updates_spec.lua
@@ -76,7 +46,6 @@ add_custom_target(
 include(LuaBusted)
 
 set(NVIM_PRG $<TARGET_FILE:nvim>)
-
 set(NVIM_TEST_TMPDIR ${PROJECT_BINARY_DIR}/test/Xtest_tmpdir)
 
 set(test_env)
@@ -91,6 +60,7 @@ list(
   "XDG_CACHE_HOME=${PROJECT_BINARY_DIR}/test/Xtest_xdg/cache"
   "XDG_CONFIG_HOME=${PROJECT_BINARY_DIR}/test/Xtest_xdg/config"
   "XDG_DATA_HOME=${PROJECT_BINARY_DIR}/test/Xtest_xdg/share"
+  "XDG_STATE_HOME=${PROJECT_BINARY_DIR}/test/Xtest_xdg/state"
   "TMPDIR=${PROJECT_BINARY_DIR}/test/Xtest_tmpdir"
   "NVIM_TEST_TMPDIR=${NVIM_TEST_TMPDIR}"
   "TEST_SKIP_FRAGILE=ON"
@@ -106,22 +76,23 @@ busted_discover_tests(
   TEST_ENVIRONMENT ${test_env}
 )
 
-foreach(task
-        api
-        autocmd
-        core
-        editor
-        exCmds
-        lua
-        options
-        plugin
-        provider
-        shada
-        terminal
-        treesitter
-        ui
-        vimscript
-      )
+foreach(
+  task
+  api
+  autocmd
+  core
+  editor
+  exCmds
+  lua
+  options
+  plugin
+  provider
+  shada
+  terminal
+  treesitter
+  ui
+  vimscript
+)
   add_test(
     NAME ${task}_serial
     COMMAND ${BUSTED_PRG} --run=${task}
