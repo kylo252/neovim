@@ -106,15 +106,37 @@ busted_discover_tests(
   TEST_ENVIRONMENT ${test_env}
 )
 
-add_test(
-  NAME functionalApiSerial
-  COMMAND ${BUSTED_PRG} --run=functionalApi
-  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-)
+foreach(task
+        api
+        autocmd
+        core
+        editor
+        exCmds
+        lua
+        options
+        plugin
+        provider
+        shada
+        terminal
+        treesitter
+        ui
+        vimscript
+      )
+  add_test(
+    NAME ${task}_serial
+    COMMAND ${BUSTED_PRG} --run=${task}
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  )
+  set_tests_properties(
+    ${task}_serial
+    PROPERTIES
+    LABELS ${task}_serial
+    ENVIRONMENT "${test_env}"
+  )
+endforeach()
 
-set_tests_properties(
-  functionalApiSerial
-  PROPERTIES
-  LABELS functionalApiSerial
-  ENVIRONMENT "${test_env}"
-)
+# set_tests_properties(
+#   terminal_serial
+#   PROPERTIES
+#   RUN_SERIAL ON
+# )
