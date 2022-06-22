@@ -14,12 +14,21 @@ for _, value in pairs(_G.arg) do
 end
 
 local luv = require('luv')
--- NOTE: os_setenv() isn't thread-safe according to luv's docs
 
 local function join_paths(...)
   local path_sep = luv.os_uname().version:match('Windows') and '\\' or '/'
   local result = table.concat({ ... }, path_sep)
   return result
+end
+
+local function is_file(path)
+  local stat = luv.fs_stat(path)
+  return stat and stat.type == 'file' or false
+end
+
+local function is_directory(path)
+  local stat = luv.fs_stat(path)
+  return stat and stat.type == 'directory' or false
 end
 
 --[[
@@ -28,16 +37,31 @@ end
   -- luv.os_setenv('TMPDIR', NVIM_TEST_TMPDIR)
 --]]
 
-local NVIM_TEST_TMPDIR = os.getenv('NVIM_TEST_TMPDIR')
+local NEOVIM_BUILD_DIR = os.getenv('NEOVIM_BUILD_DIR') or join_paths(luv.cwd(), 'build')
+
+local base_dirs = {
+  XDG_CONFIG_HOME = join_paths(NEOVIM_BUILD_DIR, 'Xtest_xdg', 'config'),
+  XDG_DATA_HOME = join_paths(NEOVIM_BUILD_DIR, 'Xtest_xdg', 'data'),
+  XDG_STATE_HOME = join_paths(NEOVIM_BUILD_DIR, 'Xtest_xdg', 'state'),
+  XDG_CACHE_HOME = join_paths(NEOVIM_BUILD_DIR, 'Xtest_xdg', 'cache'),
+}
+
+-- NOTE: os_setenv() isn't thread-safe according to luv's docs
+for k, v in pairs(base_dirs) do
+  luv.os_setenv(k, v)
+end
+
+local NVIM_TEST_TMPDIR = os.getenv('TMPDIR')
 if not NVIM_TEST_TMPDIR then
-  NVIM_TEST_TMPDIR = luv.fs_mkdtemp(join_paths(luv.os_tmpdir(), 'Xtest_nvim.XXXXXXXXXX'))
-  luv.os_setenv('NVIM_TEST_TMPDIR', NVIM_TEST_TMPDIR)
+  -- NVIM_TEST_TMPDIR = luv.fs_mkdtemp(join_paths(luv.os_tmpdir(), 'Xtest_nvim.XXXXXXXXXX'))
+  NVIM_TEST_TMPDIR = join_paths(NEOVIM_BUILD_DIR, 'Xtest_tmp')
+  luv.os_setenv('TMPDIR', NVIM_TEST_TMPDIR)
 end
 
 local NVIM_LOG_FILE = os.getenv('NVIM_LOG_FILE')
 if not NVIM_LOG_FILE then
-  local tmpfile = join_paths(NVIM_TEST_TMPDIR, '.nvimlog')
-  luv.os_setenv('NVIM_LOG_FILE', tmpfile)
+  NVIM_LOG_FILE = join_paths(NVIM_TEST_TMPDIR, '.nvimlog')
+  luv.os_setenv('NVIM_LOG_FILE', NVIM_LOG_FILE)
 end
 
 luv.os_unsetenv('XDG_DATA_DIRS')
@@ -57,32 +81,61 @@ if iswin() and ffi_ok then
 end
 
 if test_type == 'unit' then
-  local preprocess = require('test.unit.preprocess')
+  require('test.unit.preprocess')
 end
 
-local helpers = require('test.' .. test_type .. '.helpers')(nil)
+require('test.' .. test_type .. '.helpers')(nil)
 
 local testid = (function()
   local id = 0
-  return (function()
+  return function()
     id = id + 1
     return id
-  end)
+  end
 end)()
 
--- Global before_each. https://github.com/Olivine-Labs/busted/issues/613
-local function before_each(_element, _parent)
-  local id = ('T%d'):format(testid())
-  _G._nvim_test_id = id
+local dir = require('pl.dir')
+
+local testEnd = function(_, _, status, _)
+  if status == 'error' then
+    return
+  end
+  for _, path in pairs(base_dirs) do
+    if is_directory(path) and path:match('Xtest_xdg') then
+      luv.fs_rmdir(path)
+    end
+  end
+
   return nil, true
 end
-require'busted'.subscribe({ 'test', 'start' },
-  before_each,
-  {
-    -- Ensure our --helper is handled before --output (see busted/runner.lua).
-    priority = 1,
-    -- Don't generate a test-id for skipped tests. /shrug
-    predicate = function (element, _, status)
-      return not ((element.descriptor == 'pending' or status == 'pending'))
+
+-- Global before_each. https://github.com/Olivine-Labs/busted/issues/613
+local before_each = function(element)
+  local id = ('T%d'):format(testid())
+  _G._nvim_test_id = id
+
+  NVIM_LOG_FILE = join_paths(NVIM_TEST_TMPDIR, '.nvimlog.' .. id)
+  luv.os_setenv('NVIM_LOG_FILE', NVIM_LOG_FILE)
+  for _, path in pairs(base_dirs) do
+    if not is_directory(join_paths(path, 'nvim')) then
+      -- NOTE: fs_mkdir doesn't seem to handle `mkdir -p` correctly
+      dir.makepath(join_paths(path, 'nvim'), tonumber('0700'))
     end
-  })
+  end
+  return nil, true
+end
+
+local busted = require('busted')
+busted.subscribe({ 'test', 'start' }, before_each, {
+  -- Ensure our --helper is handled before --output (see busted/runner.lua).
+  priority = 1,
+  -- Don't generate a test-id for skipped tests. /shrug
+  predicate = function(element, _, status)
+    return not (element.descriptor == 'pending' or status == 'pending')
+  end,
+})
+
+busted.subscribe({ 'test', 'end' }, testEnd, {
+  -- Ensure our --helper is handled after --output (see busted/runner.lua).
+  priority = 101,
+})
