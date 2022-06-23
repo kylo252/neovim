@@ -9,6 +9,11 @@ set(script)
 set(suite)
 set(tests)
 
+if(POLICY CMP0110)
+  # supports arbitrary characters in test names
+  cmake_policy(SET CMP0110 NEW)
+endif()
+
 function(add_command NAME)
   set(_args "")
   # use ARGV* instead of ARGN, because ARGN splits arrays into multiple arguments
@@ -63,12 +68,18 @@ string(REPLACE "\n" ";" output "${output}")
 foreach(line ${output})
   string(REGEX REPLACE ".*:[0-9]+: (.*)" "\\1" testname ${line})
 
-  # Escape certain problematic characters
-  string(REGEX REPLACE "[^-+./:a-zA-Z0-9_]" "." testname_clean ${testname})
+  if(POLICY CMP0110)
+    # supports arbitrary characters in test names
+    set(testname_clean ${testname})
+  else()
+    # Escape certain problematic characters
+    string(REGEX REPLACE "[^-+./:a-zA-Z0-9_]" "." testname_clean ${testname})
+  endif()
+
   set(guarded_testname "${prefix}${testname_clean}${suffix}")
 
   # busted allows using wildcards
-  string(REGEX REPLACE "[-+]" "." test_filter ${testname_clean})
+  string(REGEX REPLACE "[-+%]" "." test_filter ${testname_clean})
 
   if(BUSTED_ARGS)
     list(APPEND extra_args "--output=${OUTPUT_HANDLER}")
