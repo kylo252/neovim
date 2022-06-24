@@ -31,6 +31,16 @@ local function is_directory(path)
   return stat and stat.type == 'directory' or false
 end
 
+local function rmrf(path)
+  if is_directory(path) then
+    return luv.fs_rmdir(path)
+  elseif is_file(path) then
+    return luv.fs_unlink(path)
+  else
+    return
+  end
+end
+
 --[[
   TODO(kylo252): we should probably override TMPDIR dynamically per test regardless,
   but that seems to cause issues for rpc tests where TMPDIR isn't passed along
@@ -54,7 +64,7 @@ end
 local NVIM_TEST_TMPDIR = os.getenv('TMPDIR')
 if not NVIM_TEST_TMPDIR then
   -- NVIM_TEST_TMPDIR = luv.fs_mkdtemp(join_paths(luv.os_tmpdir(), 'Xtest_nvim.XXXXXXXXXX'))
-  NVIM_TEST_TMPDIR = join_paths(NEOVIM_BUILD_DIR, 'Xtest_tmp')
+  NVIM_TEST_TMPDIR = join_paths(NEOVIM_BUILD_DIR, 'Xtest_tmpdir')
   luv.os_setenv('TMPDIR', NVIM_TEST_TMPDIR)
 end
 
@@ -68,6 +78,13 @@ luv.os_unsetenv('XDG_DATA_DIRS')
 luv.os_unsetenv('NVIM')
 
 local global_helpers = require('test.helpers')
+
+global_helpers.is_file = is_file
+global_helpers.is_directory = is_directory
+global_helpers.join_paths = join_paths
+global_helpers.rmrf = rmrf
+
+local lfs = require('lfs')
 
 local ffi_ok, ffi = pcall(require, 'ffi')
 
@@ -85,6 +102,7 @@ if test_type == 'unit' then
 end
 
 require('test.' .. test_type .. '.helpers')(nil)
+package.loaded['test.' .. test_type .. '.helpers'] = nil
 
 local testid = (function()
   local id = 0
@@ -94,23 +112,29 @@ local testid = (function()
   end
 end)()
 
-local dir = require('pl.dir')
+local cleanupTempFolders = function()
+  for _, path in pairs(base_dirs) do
+    if path:match('Xtest_xdg') then
+      rmrf(path)
+    end
+  end
+  for f in lfs.dir(NEOVIM_BUILD_DIR) do
+    if f:match('Xtest') then
+      rmrf(f)
+    end
+  end
+end
 
 local testEnd = function(_, _, status, _)
   if status == 'error' then
     return
   end
-  for _, path in pairs(base_dirs) do
-    if is_directory(path) and path:match('Xtest_xdg') then
-      luv.fs_rmdir(path)
-    end
-  end
-
+  cleanupTempFolders()
   return nil, true
 end
 
 -- Global before_each. https://github.com/Olivine-Labs/busted/issues/613
-local before_each = function(element)
+local before_each = function()
   local id = ('T%d'):format(testid())
   _G._nvim_test_id = id
 
@@ -119,6 +143,7 @@ local before_each = function(element)
   for _, path in pairs(base_dirs) do
     if not is_directory(join_paths(path, 'nvim')) then
       -- NOTE: fs_mkdir doesn't seem to handle `mkdir -p` correctly
+      local dir = require('pl.dir')
       dir.makepath(join_paths(path, 'nvim'), tonumber('0700'))
     end
   end

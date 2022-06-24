@@ -659,7 +659,7 @@ local function do_rmdir(path)
       if lfs.attributes(abspath, 'mode') == 'directory' then
         do_rmdir(abspath)  -- recurse
       else
-        local ret, err = os.remove(abspath)
+        local ret, err = pcall(os.remove, abspath)
         if not ret then
           if not session then
             error('os.remove: '..err)

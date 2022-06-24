@@ -200,15 +200,17 @@ function module.check_logs()
         local start_msg = ('='):rep(20) .. ' File ' .. file .. ' ' .. ('='):rep(20)
         local lines = {}
         local warning_line = 0
-        for line in fd:lines() do
-          local cur_warning_line = check_logs_useless_lines[line]
-          if cur_warning_line == warning_line + 1 then
-            warning_line = cur_warning_line
-          else
-            lines[#lines + 1] = line
+        if fd then
+          for line in fd:lines() do
+            local cur_warning_line = check_logs_useless_lines[line]
+            if cur_warning_line == warning_line + 1 then
+              warning_line = cur_warning_line
+            else
+              lines[#lines + 1] = line
+            end
           end
+          fd:close()
         end
-        fd:close()
         if #lines > 0 then
           local status, f
           local out = io.stdout
@@ -751,6 +753,10 @@ end
 -- Dedent the given text and write it to the file name.
 function module.write_file(name, text, no_dedent, append)
   local file = io.open(name, (append and 'a' or 'w'))
+  if not file then
+    error('unable to write to file: ' .. name)
+    return
+  end
   if type(text) == 'table' then
     -- Byte blob
     local bytes = text
