@@ -138,14 +138,14 @@ helphtml: | nvim build/runtime/doc/tags
 functionaltest functionaltest-lua unittest benchmark: | nvim
 	$(BUILD_TOOL) -C build $@
 
-lintlua lintsh lintpy lintc lintcfull check-single-includes generated-sources lint: | build/.ran-cmake
+lintc lintcfull check-single-includes generated-sources lint: | build/.ran-cmake
 	$(CMAKE_PRG) --build build --target $@
 
-lintuncrustify:
-	ctest --test-dir build -R lintuncrustify $(CTEST_EXTRA_FLAG)
+lintlua lintsh lintpy lintcommit:
+	ctest --test-dir build $(CTEST_EXTRA_FLAG) -R $@
 
-lintcommit:
-	ctest --test-dir build -R lintcommit $(CTEST_EXTRA_FLAG)
+lintuncrustify:
+	ctest --test-dir build $(CTEST_EXTRA_FLAG) -L lintuncrustify-changed-only
 
 test: functionaltest unittest
 

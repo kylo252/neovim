@@ -9,8 +9,6 @@ add_subdirectory(functional/fixtures)
 ########## test specs ###########
 #################################
 
-set(ENV{LC_ALL} "en_US.UTF-8")
-
 if(POLICY CMP0012)
   # Handle CI=true, without dev warnings.
   cmake_policy(SET CMP0012 NEW)
@@ -40,6 +38,12 @@ list(APPEND LINT_TARGETS ${LINT_SOURCES} ${LINT_HEADERS})
 
 find_program(GIT_EXECUTABLE git)
 
+find_program(LUACHECK_PRG luacheck)
+find_program(STYLUA_PRG stylua)
+find_program(FLAKE8_PRG flake8)
+find_program(UNCRUSTIFY_PRG uncrustify)
+find_program(SHELLCHECK_PRG shellcheck)
+
 # used for detecting changed files
 if(DEFINED ENV{NVIM_GIT_BASEREF})
   set(NVIM_GIT_BASEREF "$ENV{NVIM_GIT_BASEREF}")
@@ -57,6 +61,19 @@ execute_process(
 
 string(REPLACE "\n" ";" changed_files "${output}")
 
+# this one is used to populate lint-changed-only
+# could also be used as part of a REQUIRED_FIXTURES
+add_test(
+  NAME check_changed_files
+  COMMAND ${CMAKE_COMMAND} -E echo "${changed_files}"
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
+
+set_tests_properties(
+  check_changed_files PROPERTIES
+  LABELS lint-changed-only
+)
+
 # add a seprate test for each file for easier invocation
 # e.g. `ctest --test-dir build -R lintuncrustify-src-nvim-window-h`
 foreach(f ${LINT_TARGETS})
@@ -70,15 +87,44 @@ foreach(f ${LINT_TARGETS})
   )
   set_tests_properties(
     ${guarded_testname} PROPERTIES
-    LABELS "lint;lintuncrustify"
+    LABELS lint-all
     REQUIRED_FILES ${f}
   )
   if(rfile IN_LIST changed_files)
     set_tests_properties(
       ${guarded_testname} PROPERTIES
-      LABELS lintuncrustify-changed-only
+      LABELS "lint-changed-only;lintuncrustify-changed-only"
     )
   else()
     list(APPEND ignored_tests ${guarded_testname})
   endif()
 endforeach()
+
+add_test(
+  NAME lintlua-luacheck
+  COMMAND ${LUACHECK_PRG} -q --no-color runtime/ scripts/ src/ test/
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
+
+add_test(
+  NAME lintlua-stylua
+  COMMAND ${STYLUA_PRG} runtime/
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
+
+add_test(
+  NAME lintpy
+  COMMAND ${FLAKE8_PRG} contrib scripts src test
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
+
+add_test(
+  NAME lintsh
+  COMMAND ${SHELLCHECK_PRG} scripts/vim-patch.sh
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
+
+set_tests_properties(
+  lintcommit lintlua-stylua lintlua-luacheck lintpy lintsh PROPERTIES
+  LABELS lint-all
+)

@@ -21,7 +21,6 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # We don't support building in-tree.
 include(PreventInTreeBuilds)
-include(Util)
 
 set(TOUCHES_DIR ${PROJECT_BINARY_DIR}/touches)
 
@@ -609,61 +608,10 @@ if(NOT BUSTED_OUTPUT_TYPE)
   set(BUSTED_OUTPUT_TYPE "nvim")
 endif()
 
-#
-# Lint
-#
-find_program(LUACHECK_PRG luacheck)
-find_program(STYLUA_PRG stylua)
-find_program(FLAKE8_PRG flake8)
-find_program(UNCRUSTIFY_PRG uncrustify)
-find_program(SHELLCHECK_PRG shellcheck)
-
-add_glob_targets(
-  REQUIRED
-  TARGET lintlua-luacheck
-  COMMAND ${LUACHECK_PRG}
-  FLAGS -q
-  GLOB_DIRS runtime/ scripts/ src/ test/
-  GLOB_PAT *.lua
-  TOUCH_STRATEGY SINGLE
-  )
-
-add_glob_targets(
-  TARGET lintlua-stylua
-  COMMAND ${STYLUA_PRG}
-  FLAGS --color=always --check
-  GLOB_DIRS runtime/
-  GLOB_PAT *.lua
-  TOUCH_STRATEGY SINGLE
-  )
-
-add_custom_target(lintlua)
-add_dependencies(lintlua lintlua-luacheck lintlua-stylua)
-
 include(InstallHelpers)
-add_glob_targets(
-  TARGET lintpy
-  COMMAND ${FLAKE8_PRG}
-  GLOB_DIRS contrib scripts src test
-  GLOB_PAT *.py
-  TOUCH_STRATEGY SINGLE
-  )
-
-add_glob_targets(
-  TARGET lintsh
-  COMMAND ${SHELLCHECK_PRG}
-  FILES scripts/vim-patch.sh
-  TOUCH_STRATEGY SINGLE
-  )
-
-add_custom_target(lintcommit
-  COMMAND ${PROJECT_BINARY_DIR}/bin/nvim -u NONE -es -c [[lua require('scripts.lintcommit').main({trace=false})]]
-  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  VERBATIM)
-add_dependencies(lintcommit nvim)
 
 add_custom_target(lint)
-add_dependencies(lint check-single-includes lintc lintlua lintpy lintsh)
+add_dependencies(lint check-single-includes lintc)
 
 install_helper(
   FILES ${CMAKE_SOURCE_DIR}/src/man/nvim.1

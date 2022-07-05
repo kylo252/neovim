@@ -123,19 +123,19 @@ jobs:
         name: lintuncrustify
         env:
           NVIM_GIT_BASEREF: "origin/master"
-        run: ctest --test-dir -L lintuncrustify-changed-only
+        run: ctest --test-dir ${BUILD_DIR} -L lintuncrustify-changed-only
 
       - if: "!cancelled()"
         name: lintlua
-        run: ./ci/run_lint.sh lintlua
+        run: ctest --test-dir ${BUILD_DIR} -R lintlut
 
       - if: "!cancelled()"
         name: lintpy
-        run: ./ci/run_lint.sh lintpy
+        run: ctest --test-dir ${BUILD_DIR} -R lintpy
 
       - if: "!cancelled()"
         name: lintsh
-        run: ./ci/run_lint.sh lintsh
+        run: ctest --test-dir ${BUILD_DIR} -R lintsh
 
       - if: "!cancelled()"
         name: check-single-includes
