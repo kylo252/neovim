@@ -123,19 +123,19 @@ jobs:
         name: lintuncrustify
         env:
           NVIM_GIT_BASEREF: "origin/master"
-        run: ctest --test-dir ${BUILD_DIR} -L lintuncrustify-changed-only
+        run: ctest --test-dir ${BUILD_DIR} -L lintuncrustify-changed-only --output-junit lintuncrustify.xml
 
       - if: "!cancelled()"
-        name: lintlua
-        run: ctest --test-dir ${BUILD_DIR} -R lintlut
+        name: luacheck
+        run: ctest --test-dir ${BUILD_DIR} -R luacheck --output-junit lintluacheck.xml
 
       - if: "!cancelled()"
         name: lintpy
-        run: ctest --test-dir ${BUILD_DIR} -R lintpy
+        run: ctest --test-dir ${BUILD_DIR} -R lintpy --output-junit lintpy.xml
 
       - if: "!cancelled()"
         name: lintsh
-        run: ctest --test-dir ${BUILD_DIR} -R lintsh
+        run: ctest --test-dir ${BUILD_DIR} -R lintsh --output-junit lintsh.xml
 
       - if: "!cancelled()"
         name: check-single-includes
@@ -143,6 +143,12 @@ jobs:
 
       - name: Cache dependencies
         run: ./ci/before_cache.sh
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: "build/**/*.xml"
 
   posix:
     name: ${{ matrix.runner }} ${{ matrix.flavor }} (cc=${{ matrix.cc }})
