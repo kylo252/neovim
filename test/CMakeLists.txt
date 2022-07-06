@@ -1,14 +1,6 @@
 add_subdirectory(includes)
 add_subdirectory(functional/fixtures)
 
-# TODO:
-# - specify *all* the luarocks requirements for tests (what about ffi?)
-# - use impatient to make up for the (sizeable) overhead when running each test independently
-
-#################################
-########## test specs ###########
-#################################
-
 if(POLICY CMP0012)
   # Handle CI=true, without dev warnings.
   cmake_policy(SET CMP0012 NEW)
@@ -126,5 +118,5 @@ add_test(
 
 set_tests_properties(
   lintcommit lintlua-stylua lintlua-luacheck lintpy lintsh PROPERTIES
-  LABELS lint-all
+  LABELS lint
 )
