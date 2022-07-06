@@ -1,0 +1,149 @@
+name: playground
+on:
+  push:
+    branches:
+      - 'ci-test'
+  workflow_dispatch:
+
+# Cancel any in-progress CI runs for a PR if it is updated
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    # This job tests two things: it lints the code but also builds neovim using
+    # system dependencies instead of bundled dependencies. This is to make sure
+    # we are able to build neovim without pigeonholing ourselves into specifics
+    # of the bundled dependencies.
+
+    runs-on: ubuntu-20.04
+    timeout-minutes: 10
+    env:
+      CC: gcc
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup common environment variables
+        run: ./.github/workflows/env.sh lint
+
+      - name: Install apt packages
+        run: |
+          sudo add-apt-repository ppa:neovim-ppa/stable
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf \
+            automake \
+            build-essential \
+            ccache \
+            cmake \
+            flake8 \
+            gettext \
+            libluajit-5.1-dev \
+            libmsgpack-dev \
+            libtermkey-dev \
+            libtool-bin \
+            libtree-sitter-dev \
+            libunibilium-dev \
+            libuv1-dev \
+            libvterm-dev \
+            locales \
+            lua-busted \
+            lua-check \
+            lua-filesystem \
+            lua-inspect \
+            lua-lpeg \
+            lua-luv-dev \
+            lua-nvim \
+            luajit \
+            ninja-build \
+            pkg-config
+
+
+      - name: Cache uncrustify
+        id: cache-uncrustify
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.CACHE_UNCRUSTIFY }}
+          key: ${{ env.UNCRUSTIFY_VERSION }}
+
+      - name: Clone uncrustify
+        if: steps.cache-uncrustify.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: uncrustify/uncrustify
+          ref: ${{ env.UNCRUSTIFY_VERSION }}
+          path: uncrustify
+
+      - name: Install uncrustify
+        if: steps.cache-uncrustify.outputs.cache-hit != 'true'
+        run: |
+          source_dir=uncrustify
+          build_dir=uncrustify/build
+          cmake -S $source_dir -B $build_dir -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build $build_dir
+          cmake --install $build_dir --prefix "$HOME/.local"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          mkdir -p "$HOME/.cache"
+          cp $build_dir/uncrustify ${{ env.CACHE_UNCRUSTIFY }}
+
+      - name: Cache artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ env.CACHE_NVIM_DEPS_DIR }}
+            ~/.ccache
+          key: lint-${{ hashFiles('cmake/*', '**/CMakeLists.txt', '!cmake.deps/**CMakeLists.txt') }}-${{ github.base_ref }}
+
+      # - name: Build third-party deps
+      #   run: ./ci/before_script.sh
+      
+      # - name: Build nvim
+      #   run: ./ci/run_tests.sh build_nvim
+
+      # - if: "!cancelled()"
+      #   name: lintcfull
+      #   run: ./ci/run_lint.sh lintcfull
+
+      # - if: "!cancelled()"
+      #   name: lintstylua
+      #   uses: JohnnyMorganz/stylua-action@1.0.0
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     args: --check runtime/
+
+      - if: "!cancelled()"
+        name: configure-cmake
+        env:
+          NVIM_GIT_BASEREF: "origin/master"
+          CMAKE_GENERATOR: "Ninja"
+        run: cmake . -B ${BUILD_DIR}
+
+      - if: "!cancelled()"
+        name: lintuncrustify
+        run: ctest --test-dir ${BUILD_DIR} -L lintuncrustify-changed-only --output-junit lintuncrustify.xml
+
+      - if: "!cancelled()"
+        name: luacheck
+        run: ctest --test-dir ${BUILD_DIR} -R luacheck --output-junit lintluacheck.xml
+
+      - if: "!cancelled()"
+        name: lintpy
+        run: ctest --test-dir ${BUILD_DIR} -R lintpy --output-junit lintpy.xml
+
+      - if: "!cancelled()"
+        name: lintsh
+        run: ctest --test-dir ${BUILD_DIR} -R lintsh --output-junit lintsh.xml
+
+      # - if: "!cancelled()"
+      #   name: check-single-includes
+      #   run: ./ci/run_lint.sh check-single-includes
+
+      # - name: Cache dependencies
+      #   run: ./ci/before_cache.sh
+
+      - name: publish-test-results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: "build/**/*.xml"
