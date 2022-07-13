@@ -184,6 +184,11 @@ if(NOT MSVC)
 
   set_source_files_properties(
     eval/funcs.c PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS} -Wno-conversion")
+else()
+  # C4267: 'var' : conversion from 'size_t' to 'type', possible loss of data
+  # C4244: 'conversion' conversion from 'type1' to 'type2', possible loss of data
+  set_source_files_properties(
+    ${EXTERNAL_SOURCES} ${CONV_SOURCES} eval/funcs.c PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS} /wd4244 /wd4267")
 endif()
 
 if(NOT "${MIN_LOG_LEVEL}" MATCHES "^$")
