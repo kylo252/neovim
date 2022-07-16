@@ -15,7 +15,7 @@ find_path(LUAJIT_INCLUDE_DIR luajit.h
           PATHS ${PC_LUAJIT_INCLUDEDIR} ${PC_LUAJIT_INCLUDE_DIRS}
           PATH_SUFFIXES luajit-2.0 luajit-2.1)
 
-if(MSVC)
+if(WIN32 OR MSVC)
   list(APPEND LUAJIT_NAMES lua51)
 elseif(MINGW)
   list(APPEND LUAJIT_NAMES libluajit libluajit-5.1)

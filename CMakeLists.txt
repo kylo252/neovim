@@ -275,11 +275,13 @@ int main(void)
 " HAVE_BUILTIN_ADD_OVERFLOW)
 
 option(ENABLE_COMPILER_SUGGESTIONS "Enable -Wsuggest compiler warnings" OFF)
+if(WIN32)
+  add_definitions(-DWIN32)
+endif()
 if(MSVC)
   # XXX: /W4 gives too many warnings. #3241
   add_compile_options(/W3)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
-  add_definitions(-DWIN32)
 else()
   add_compile_options(-Wall -Wextra -pedantic -Wno-unused-parameter
     -Wstrict-prototypes -std=gnu99 -Wshadow -Wconversion

@@ -1,0 +1,195 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "base",
+      "displayName": "base preset",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true
+      },
+      "environment": {
+        "LOG_DIR": "${sourceDir}/build/${presetName}/logs"
+      },
+      "hidden": true
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "description": "Same as RelWithDebInfo, but disables debug information",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "inherits": [
+        "base"
+      ]
+    },
+    {
+      "name": "relwithdebinfo",
+      "displayName": "RelWithDebInfo",
+      "description": "Enables optimizations (-Og or -O2) with debug information",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      },
+      "inherits": [
+        "base"
+      ]
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "description": "Disables optimizations (-O0), enables debug information",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "inherits": [
+        "base"
+      ]
+    },
+    {
+      "name": "debug-clang",
+      "displayName": "Debug (w/ clang toolchain)",
+      "environment": {
+        "CC": "clang",
+        "CXX": "clang++"
+      },
+      "inherits": [
+        "debug"
+      ]
+    },
+    {
+      "name": "asan",
+      "displayName": "Debug (w/ ASAN/UBSAN support)",
+      "cacheVariables": {
+        "CLANG_ASAN_UBSAN": "ON"
+      },
+      "environment": {
+        "ASAN_OPTIONS": "'detect_leaks=0;log_path=$env{LOG_DIR}'",
+        "UBSAN_OPTIONS": "'print_stacktrace=1'"
+      },
+      "inherits": [
+        "debug-clang"
+      ]
+    },
+    {
+      "name": "tsan",
+      "displayName": "Debug (w/ TSAN support)",
+      "cacheVariables": {
+        "CLANG_TSAN": "ON"
+      },
+      "environment": {
+        "TSAN_OPTIONS": "'log_path=$env{LOG_DIR}'"
+      },
+      "inherits": [
+        "debug-clang"
+      ]
+    },
+    {
+      "name": "msan",
+      "displayName": "Debug (w/ MSAN support)",
+      "cacheVariables": {
+        "CLANG_MSAN": "ON"
+      },
+      "environment": {
+        "MSAN_OPTIONS": "'log_path=$env{LOG_DIR}'"
+      },
+      "inherits": [
+        "debug-clang"
+      ]
+    },
+    {
+      "name": "win-x64",
+      "displayName": "Windows MSVC x64 (/w VS2019)",
+      "description": "configuration for MSVC (Windows only)",
+      "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "value": "x64",
+        "strategy": "set"
+      },
+      "cacheVariables":{
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      },
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "win-clang-x64",
+      "displayName": "Windows Clang x64 (/w VS2019)",
+      "description": "configuration for Clang (Windows only)",
+      "toolset": {
+        "value": "ClangCl",
+        "strategy": "set"
+      },
+      "inherits": "win-x64"
+    },
+    {
+      "name": "win-ninja-x64",
+      "displayName": "Windows x64 (/w Ninja)",
+      "description": "MSVC configuration with Ninja (Windows only)",
+      "generator": "Ninja",
+      "environment":{
+        "LLVM_TOOLS_DIR": "C:/VS/BuildTools/VC/Tools/LLVM"
+      },
+      "cacheVariables":{
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_C_COMPILER": "$env{LLVM_TOOLS_DIR}/x64/bin/clang.exe",
+        "CMAKE_CXX_COMPILER": "$env{LLVM_TOOLS_DIR}/x64/bin/clang++.exe",
+        "CMAKE_RC_COMPILER": "$env{LLVM_TOOLS_DIR}/x64/bin/llvm-rc.exe"
+      },
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release"
+    },
+    {
+      "name": "debug-clang",
+      "configurePreset": "debug-clang"
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan"
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan"
+    },
+    {
+      "name": "msan",
+      "configurePreset": "msan"
+    },
+    {
+      "name": "win-x64",
+      "configurePreset": "win-x64",
+      "nativeToolOptions": [
+        "/verbosity:normal",
+        "/m"
+      ]
+    },
+    {
+      "name": "win-clang-x64",
+      "configurePreset": "win-clang-x64",
+      "inherits": "win-x64"
+    },
+    {
+      "name": "win-ninja-x64",
+      "configurePreset": "win-ninja-x64"
+    }
+  ]
+}

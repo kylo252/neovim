@@ -609,7 +609,7 @@ add_library(
 )
 set_property(TARGET libnvim APPEND PROPERTY
              INCLUDE_DIRECTORIES ${LUA_PREFERRED_INCLUDE_DIRS})
-if(MSVC)
+if(WIN32 OR MSVC)
   set(LIBNVIM_NAME libnvim)
 else()
   set(LIBNVIM_NAME nvim)
