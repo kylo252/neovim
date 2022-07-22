@@ -612,13 +612,6 @@ if(LUAC_PRG)
   message(STATUS "Using Lua compiler: ${LUAC_PRG}")
 endif()
 
-# Setup busted.
-find_program(BUSTED_PRG NAMES busted busted.bat)
-find_program(BUSTED_LUA_PRG busted-lua)
-if(NOT BUSTED_OUTPUT_TYPE)
-  set(BUSTED_OUTPUT_TYPE "nvim")
-endif()
-
 #
 # Lint
 #
@@ -698,101 +691,23 @@ endif()
 
 # Setup some test-related bits.  We do this after going down the tree because we
 # need some of the targets.
-if(BUSTED_PRG)
-  get_property(TEST_INCLUDE_DIRS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    PROPERTY INCLUDE_DIRECTORIES)
+get_property(TEST_INCLUDE_DIRS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  PROPERTY INCLUDE_DIRECTORIES)
 
-  # When running tests from 'ninja' we need to use the
-  # console pool: to do so we need to use the USES_TERMINAL
-  # option, but this is only available in CMake 3.2
-  set(TEST_TARGET_ARGS)
-  list(APPEND TEST_TARGET_ARGS "USES_TERMINAL")
-
-  set(UNITTEST_PREREQS nvim-test unittest-headers)
-  set(FUNCTIONALTEST_PREREQS nvim printenv-test printargs-test shell-test pwsh-test streams-test tty-test ${GENERATED_HELP_TAGS})
-  set(BENCHMARK_PREREQS nvim tty-test)
-
-  check_lua_module(${LUA_PRG} "ffi" LUA_HAS_FFI)
-  if(LUA_HAS_FFI)
-    add_custom_target(unittest
-      COMMAND ${CMAKE_COMMAND}
-        -DBUSTED_PRG=${BUSTED_PRG}
-        -DLUA_PRG=${LUA_PRG}
-        -DWORKING_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-        -DBUSTED_OUTPUT_TYPE=${BUSTED_OUTPUT_TYPE}
-        -DTEST_DIR=${CMAKE_CURRENT_SOURCE_DIR}/test
-        -DBUILD_DIR=${CMAKE_BINARY_DIR}
-        -DTEST_TYPE=unit
-        -P ${PROJECT_SOURCE_DIR}/cmake/RunTests.cmake
-      DEPENDS ${UNITTEST_PREREQS}
-      ${TEST_TARGET_ARGS})
-    set_target_properties(unittest PROPERTIES FOLDER test)
-  else()
-    message(WARNING "disabling unit tests: no Luajit FFI in ${LUA_PRG}")
-  endif()
-
-  if(LUA_HAS_FFI)
-    set(TEST_LIBNVIM_PATH $<TARGET_FILE:nvim-test>)
-  else()
-    set(TEST_LIBNVIM_PATH "")
-  endif()
-  configure_file(
-    ${CMAKE_SOURCE_DIR}/test/cmakeconfig/paths.lua.in
-    ${CMAKE_BINARY_DIR}/test/cmakeconfig/paths.lua.gen)
-  file(GENERATE
-    OUTPUT ${CMAKE_BINARY_DIR}/test/cmakeconfig/paths.lua
-    INPUT ${CMAKE_BINARY_DIR}/test/cmakeconfig/paths.lua.gen)
-
-  add_custom_target(functionaltest
-    COMMAND ${CMAKE_COMMAND}
-      -DBUSTED_PRG=${BUSTED_PRG}
-      -DLUA_PRG=${LUA_PRG}
-      -DNVIM_PRG=$<TARGET_FILE:nvim>
-      -DWORKING_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-      -DBUSTED_OUTPUT_TYPE=${BUSTED_OUTPUT_TYPE}
-      -DTEST_DIR=${CMAKE_CURRENT_SOURCE_DIR}/test
-      -DBUILD_DIR=${CMAKE_BINARY_DIR}
-      -DTEST_TYPE=functional
-      -P ${PROJECT_SOURCE_DIR}/cmake/RunTests.cmake
-    DEPENDS ${FUNCTIONALTEST_PREREQS}
-    ${TEST_TARGET_ARGS})
-  set_target_properties(functionaltest PROPERTIES FOLDER test)
-
-  add_custom_target(benchmark
-    COMMAND ${CMAKE_COMMAND}
-      -DBUSTED_PRG=${BUSTED_PRG}
-      -DLUA_PRG=${LUA_PRG}
-      -DNVIM_PRG=$<TARGET_FILE:nvim>
-      -DWORKING_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-      -DBUSTED_OUTPUT_TYPE=${BUSTED_OUTPUT_TYPE}
-      -DTEST_DIR=${CMAKE_CURRENT_SOURCE_DIR}/test
-      -DBUILD_DIR=${CMAKE_BINARY_DIR}
-      -DTEST_TYPE=benchmark
-      -P ${PROJECT_SOURCE_DIR}/cmake/RunTests.cmake
-    DEPENDS ${BENCHMARK_PREREQS}
-    ${TEST_TARGET_ARGS})
-  set_target_properties(benchmark PROPERTIES FOLDER test)
-
-  # needs to be run after defining unittest-prereqs
-  add_subdirectory(test)
+check_lua_module(${LUA_PRG} "ffi" LUA_HAS_FFI)
+if(LUA_HAS_FFI)
+  set(TEST_LIBNVIM_PATH $<TARGET_FILE:nvim-test>)
+else()
+  set(TEST_LIBNVIM_PATH "")
 endif()
+configure_file(
+  ${CMAKE_SOURCE_DIR}/test/cmakeconfig/paths.lua.in
+  ${CMAKE_BINARY_DIR}/test/cmakeconfig/paths.lua.gen)
+file(GENERATE
+  OUTPUT ${CMAKE_BINARY_DIR}/test/cmakeconfig/paths.lua
+  INPUT ${CMAKE_BINARY_DIR}/test/cmakeconfig/paths.lua.gen)
 
-if(BUSTED_LUA_PRG)
-  add_custom_target(functionaltest-lua
-    COMMAND ${CMAKE_COMMAND}
-      -DBUSTED_PRG=${BUSTED_LUA_PRG}
-      -DLUA_PRG=${LUA_PRG}
-      -DNVIM_PRG=$<TARGET_FILE:nvim>
-      -DWORKING_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-      -DBUSTED_OUTPUT_TYPE=${BUSTED_OUTPUT_TYPE}
-      -DTEST_DIR=${CMAKE_CURRENT_SOURCE_DIR}/test
-      -DBUILD_DIR=${CMAKE_BINARY_DIR}
-      -DTEST_TYPE=functional
-      -P ${PROJECT_SOURCE_DIR}/cmake/RunTests.cmake
-    DEPENDS ${FUNCTIONALTEST_PREREQS}
-    ${TEST_TARGET_ARGS})
-    set_target_properties(functionaltest-lua PROPERTIES FOLDER test)
-endif()
+add_subdirectory(test)
 
 add_custom_target(uninstall
   COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/cmake/UninstallHelper.cmake)

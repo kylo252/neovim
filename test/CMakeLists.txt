@@ -1,12 +1,24 @@
 add_subdirectory(includes)
 
-# TODO:
-# - specify *all* the luarocks requirements for tests (what about ffi?)
-# - use impatient to make up for the (sizeable) overhead when running each test independently
+# TODO: - specify *all* the luarocks requirements for tests (what about ffi?) -
+# use impatient to make up for the (sizeable) overhead when running each test
+# independently
 
-#################################
-########## test specs ###########
-#################################
+# ##############################################################################
+# ######### test specs ###########
+# ##############################################################################
+
+add_custom_target(functionaltest-prereqs
+  DEPENDS nvim printenv-test printargs-test shell-test pwsh-test streams-test tty-test ${GENERATED_HELP_TAGS}
+)
+
+add_custom_target(benchmark-prereqs DEPENDS nvim tty-test)
+
+add_custom_target(unittest-prereqs DEPENDS nvim-test unittest-headers)
+
+# Setup busted.
+find_program(BUSTED_PRG NAMES busted busted.bat)
+find_program(BUSTED_LUA_PRG busted-lua)
 
 set(ENV{LC_ALL} "en_US.UTF-8")
 
@@ -25,10 +37,42 @@ list(
   "NEOVIM_BUILD_DIR=${PROJECT_BINARY_DIR}"
   "NEOVIM_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
   "VIMRUNTIME=${PROJECT_SOURCE_DIR}/runtime"
-  "NVIM_RPLUGIN_MANIFEST=${PROJECT_BINARY_DIR}/Xtest_rplugin_manifest"
-  "LOG_DIR=${PROJECT_BINARY_DIR}/log"
   "TEST_SKIP_FRAGILE=ON"
-  "SYSTEM_NAME=${CMAKE_HOST_SYSTEM_NAME}"
+)
+
+if(BUSTED_LUA_PRG)
+  add_test(
+    NAME functionaltest-lua
+    COMMAND ${BUSTED_LUA_PRG} --run=functional
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  )
+  set_tests_properties(
+    functionaltest-lua
+    PROPERTIES
+    ENVIRONMENT "${test_env}"
+  )
+endif()
+
+if(NOT BUSTED_PRG)
+  return()
+endif()
+
+add_test(
+  NAME unittest
+  COMMAND ${BUSTED_PRG} --run=unit
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
+
+add_test(
+  NAME benchmark
+  COMMAND ${BUSTED_PRG} --run=benchmark
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
+
+set_tests_properties(
+  unittest benchmark
+  PROPERTIES
+  ENVIRONMENT "${test_env}"
 )
 
 foreach(
@@ -61,18 +105,14 @@ foreach(
   )
 endforeach()
 
-# set_tests_properties(
-#   terminal_serial
-#   PROPERTIES
-#   RUN_SERIAL ON
-# )
-
 if(NOT LUA_HAS_FFI)
+  message(WARNING "disabling unit tests: no Luajit FFI in ${LUA_PRG}")
+  set_tests_properties(unittest PROPERTIES DISABLED TRUE)
   message(INFO "disabling test discovery: no Luajit FFI in ${LUA_PRG}")
   return()
 endif()
 
-# TODO: this currently doesn't work for test/unit because test/unit/helper.lua is loading all the tests instead
+# NOTE: this currently doesn't work for test/unit because test/unit/helper.lua is loading all the tests instead
 add_custom_target(
   generate-test-runners
   DEPENDS ${FUNCTIONALTEST_PREREQS}
@@ -93,6 +133,8 @@ add_custom_target(
   ${PROJECT_SOURCE_DIR}/test/functional/api/vim_spec.lua
   ${PROJECT_SOURCE_DIR}/test/functional/api/window_spec.lua
 )
+
+add_dependencies(nvim-test generate-test-runners)
 
 include(LuaBusted)
 
