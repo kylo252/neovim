@@ -80,18 +80,26 @@ foreach(f ${LINT_NVIM_C_FILES})
   string(REGEX REPLACE "[/.]" "-" testname ${testname})
   set(unc_testname lintuncrustify-${testname})
   set(clint_testname lintc-${testname})
-  add_test(
-    NAME ${unc_testname}
-    COMMAND ${UNCRUSTIFY_PRG} -c ${PROJECT_SOURCE_DIR}/src/uncrustify.cfg -q --check ${rfile}
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  )
+  # FIXME(kylo252): this should probably be replaced with a FIXTURES_SETUP
+  if(UNCRUSTIFY_PRG)
+    add_test(
+      NAME ${unc_testname}
+      COMMAND ${UNCRUSTIFY_PRG} -c ${PROJECT_SOURCE_DIR}/src/uncrustify.cfg -q --check ${rfile}
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    )
+    set_tests_properties(
+      ${unc_testname} PROPERTIES
+      LABELS "lint-all;lintcfull"
+      REQUIRED_FILES ${f}
+    )
+  endif()
   add_test(
     NAME ${clint_testname}
     COMMAND ${CLINT_PRG} --suppress-errors ${CLINT_SUPPRESSIONS_DIR}/${testname}.json --output ${CLINT_OUTPUT_FORMAT} ${rfile}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   )
   set_tests_properties(
-    ${unc_testname} ${clint_testname} PROPERTIES
+    ${clint_testname} PROPERTIES
     LABELS "lint-all;lintcfull"
     REQUIRED_FILES ${f}
   )
