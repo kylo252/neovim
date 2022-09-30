@@ -19,7 +19,7 @@ list(
 
 add_test(
   NAME lintcommit
-  COMMAND ${NVIM_PRG} --headless --clean -es -c [==[lua require('scripts.lintcommit').main({trace=false})]==]
+  COMMAND ${NVIM_PRG} -u NONE --headless -es -c [==[lua require('scripts.lintcommit').main({trace=false})]==]
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
 
@@ -107,19 +107,19 @@ endforeach()
 
 add_test(
   NAME lintlua-luacheck
-  COMMAND ${LUACHECK_PRG} -q --no-color runtime/ scripts/ src/ test/
+  COMMAND ${LUACHECK_PRG} -q runtime/ scripts/ src/ test/
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
 
 add_test(
   NAME lintlua-stylua
-  COMMAND ${STYLUA_PRG}  --color=always --check runtime/
+  COMMAND ${STYLUA_PRG} --color=always --check runtime/
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
 
 add_test(
   NAME lintpy
-  COMMAND ${FLAKE8_PRG} contrib scripts src test
+  COMMAND ${FLAKE8_PRG} --max-line-length 88 contrib scripts src test
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 )
 
