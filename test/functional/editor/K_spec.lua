@@ -6,10 +6,10 @@ describe('K', function()
   local test_file = 'K_spec_out'
   before_each(function()
     clear()
-    os.remove(test_file)
+    helpers.rm(test_file)
   end)
   after_each(function()
-    os.remove(test_file)
+    helpers.rm(test_file)
   end)
 
   it("invokes colon-prefixed 'keywordprg' as Vim command", function()

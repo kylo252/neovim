@@ -6,7 +6,7 @@ local exc_exec = helpers.exc_exec
 describe('Test for delete()', function()
   before_each(clear)
   after_each(function()
-    os.remove('Xfile')
+    helpers.rm('Xfile')
   end)
 
   it('file delete', function()

@@ -22,7 +22,7 @@ local function diff(text, nodedent)
   else
     helpers.eq(helpers.dedent(text), data)
   end
-  os.remove(fname)
+  helpers.rm(fname)
 end
 
 describe('character classes in regexp', function()
@@ -48,7 +48,7 @@ describe('character classes in regexp', function()
     command('e test36.in')
   end)
   teardown(function()
-    os.remove('test36.in')
+    helpers.rm('test36.in')
   end)
 
   it('is working', function()

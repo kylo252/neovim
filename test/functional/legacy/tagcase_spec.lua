@@ -24,7 +24,7 @@ describe("'tagcase' option", function()
   end)
 
   teardown(function()
-    os.remove('Xtags')
+    helpers.rm('Xtags')
   end)
 
   it('should have correct default values', function()

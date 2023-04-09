@@ -13,7 +13,7 @@ describe('Folds', function()
 
   setup(clear)
   before_each(function() command('bwipe! | new') end)
-  after_each(function() os.remove(tempfname) end)
+  after_each(function() helpers.rm(tempfname) end)
 
   it('manual folding adjusts with filter', function()
     insert([[

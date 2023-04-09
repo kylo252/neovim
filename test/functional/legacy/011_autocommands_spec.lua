@@ -59,9 +59,9 @@ describe('file reading, writing and bufnew and filter autocommands', function()
     clear({env={GZIP=nil}})
   end)
   teardown(function()
-    os.remove('Xtestfile.gz')
-    os.remove('Xtest.c')
-    os.remove('test.out')
+    helpers.rm('Xtestfile.gz')
+    helpers.rm('Xtest.c')
+    helpers.rm('test.out')
   end)
 
   if not has_gzip() then

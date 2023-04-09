@@ -198,8 +198,8 @@ describe(':confirm command dialog', function()
     eq('foo4\n', read_file('Xfoo'))
     eq('bar2\n', read_file('Xbar'))
 
-    os.remove('Xfoo')
-    os.remove('Xbar')
+    helpers.rm('Xfoo')
+    helpers.rm('Xbar')
   end)
 
   -- oldtest: Test_confirm_cmd_cancel()
@@ -324,7 +324,7 @@ describe(':confirm command dialog', function()
       "Xfoo" [noeol] 1L, 3B written                                              |
     ]])
 
-    os.remove('Xfoo')
+    helpers.rm('Xfoo')
   end)
 
   -- oldtest: Test_confirm_write_ro()
@@ -442,7 +442,7 @@ describe(':confirm command dialog', function()
     eq('foo\n', read_file('Xconfirm_write_ro'))
     feed('<CR>')  -- suppress hit-enter prompt
 
-    os.remove('Xconfirm_write_ro')
+    helpers.rm('Xconfirm_write_ro')
   end)
 
   -- oldtest: Test_confirm_write_partial_file()
@@ -479,7 +479,7 @@ describe(':confirm command dialog', function()
                                                                1,1           All |
     ]])
     eq('a\nb\nc\nd\n', read_file('Xwrite_partial'))
-    os.remove('Xwrite_partial')
+    helpers.rm('Xwrite_partial')
 
     feed(':confirm 2,3w\n')
     screen:expect([[
@@ -518,6 +518,6 @@ describe(':confirm command dialog', function()
     end
     eq('b\nc\n', read_file('Xwrite_partial'))
 
-    os.remove('Xwrite_partial')
+    helpers.rm('Xwrite_partial')
   end)
 end)

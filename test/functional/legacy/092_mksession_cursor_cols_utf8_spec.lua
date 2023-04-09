@@ -11,8 +11,8 @@ describe('store cursor position in session file in UTF-8', function()
   setup(clear)
 
   teardown(function()
-    os.remove('test.in')
-    os.remove('test.out')
+    helpers.rm('test.in')
+    helpers.rm('test.out')
   end)
 
   -- luacheck: ignore 621 (Indentation)

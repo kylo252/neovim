@@ -75,6 +75,6 @@ describe('BufEnter with modelines', function()
   end)
 
   teardown(function()
-    os.remove('Xxx')
+    helpers.rm('Xxx')
   end)
 end)

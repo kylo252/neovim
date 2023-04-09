@@ -23,15 +23,15 @@ end
 describe('undo tree:', function()
   before_each(clear)
   teardown(function()
-    os.remove('Xtest.source')
+    helpers.rm('Xtest.source')
   end)
 
   describe(':earlier and :later', function()
     before_each(function()
-      os.remove('Xtest')
+      helpers.rm('Xtest')
     end)
     teardown(function()
-      os.remove('Xtest')
+      helpers.rm('Xtest')
     end)
 
     it('time specifications, g- g+', function()

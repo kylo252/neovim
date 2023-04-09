@@ -14,7 +14,7 @@ describe('location list', function()
   local test_file = 'Xtest-096_location_list.out'
   setup(clear)
   teardown(function()
-    os.remove(test_file)
+    helpers.rm(test_file)
   end)
 
   it('is working', function()

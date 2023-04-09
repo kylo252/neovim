@@ -8,7 +8,7 @@ describe('mksession', function()
   before_each(clear)
 
   after_each(function()
-    os.remove('Xtest_mks.out')
+    helpers.rm('Xtest_mks.out')
   end)
 
   it('supports "skiprtp" value', function()

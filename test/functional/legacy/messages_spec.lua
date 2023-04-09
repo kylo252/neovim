@@ -691,6 +691,6 @@ describe('messages', function()
       {0:~                                       }|
       'b' written                             |
     ]])
-    os.remove('b.txt')
+    helpers.rm('b.txt')
   end)
 end)

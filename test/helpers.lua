@@ -52,6 +52,17 @@ function module.isfile(path)
   return stat.type == 'file'
 end
 
+function module.rm(path)
+  local stat = luv.fs_stat(path)
+  if not stat then
+    return false
+  end
+  if stat.type == 'file' then
+    return vim.loop.fs_unlink(path)
+  end
+  return module.rmdir(path)
+end
+
 function module.rmdir(path)
   if not module.isdir(path) then
     return
@@ -350,7 +361,7 @@ function module.check_logs()
           out:write(select(1, start_msg:gsub('.', '=')) .. '\n')
           table.insert(runtime_errors, file)
         end
-        os.remove(file)
+        module.rm(file)
       end
     end
   end
@@ -487,7 +498,7 @@ function module.check_cores(app, force) -- luacheck: ignore
     os.execute(db_cmd:gsub('%$_NVIM_TEST_APP', app):gsub('%$_NVIM_TEST_CORE', core) .. ' 2>&1')
     out:write('\n')
     found_cores = found_cores + 1
-    os.remove(core)
+    module.rm(core)
   end
   if found_cores ~= 0 then
     out:write(('\nTests covered by this check: %u\n'):format(tests_skipped + 1))

@@ -87,7 +87,7 @@ describe('memory usage', function()
   local tmpfile = 'X_memory_usage'
 
   after_each(function()
-    os.remove(tmpfile)
+    helpers.rm(tmpfile)
   end)
 
   local function check_result(tbl, status, result)

@@ -48,7 +48,7 @@ describe("'directory' option", function()
     expect_exit(command, 'qall!')
     helpers.rmdir('Xtest.je')
     helpers.rmdir('Xtest2')
-    os.remove('Xtest1')
+    helpers.rm('Xtest1')
   end)
 
   it('is working', function()

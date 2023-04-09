@@ -81,8 +81,8 @@ describe('u CTRL-R g- g+', function()
 
     after_each(function()
       command('bwipe!')
-      os.remove('Xtestfile.txt')
-      os.remove('Xtestfile.txt.un~')
+      helpers.rm("Xtestfile.txt")
+      helpers.rm('.Xtestfile.txt.un~')
     end)
 
     -- oldtest: Test_undo_after_write()

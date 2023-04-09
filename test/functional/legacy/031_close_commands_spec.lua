@@ -21,9 +21,9 @@ local expect_exit = helpers.expect_exit
 
 describe('Commands that close windows and/or buffers', function()
   local function cleanup()
-    os.remove('Xtest1')
-    os.remove('Xtest2')
-    os.remove('Xtest3')
+    helpers.rm('Xtest1')
+    helpers.rm('Xtest2')
+    helpers.rm('Xtest3')
   end
   setup(function()
     cleanup()

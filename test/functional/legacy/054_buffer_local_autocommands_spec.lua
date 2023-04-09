@@ -32,6 +32,6 @@ describe('BufLeave <buffer>', function()
   end)
 
   teardown(function()
-    os.remove(fname)
+    helpers.rm(fname)
   end)
 end)

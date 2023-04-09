@@ -27,6 +27,6 @@ describe(':source!', function()
       {0:~                                                                          }|
       {1:E22: Scripts nested too deep}                                               |
     ]])
-    os.remove('Xscript.vim')
+    helpers.rm('Xscript.vim')
   end)
 end)

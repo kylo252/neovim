@@ -35,6 +35,6 @@ describe('CTRL-V at the end of the line', function()
   end)
 
   teardown(function()
-    os.remove('Xtestfile')
+    helpers.rm('Xtestfile')
   end)
 end)

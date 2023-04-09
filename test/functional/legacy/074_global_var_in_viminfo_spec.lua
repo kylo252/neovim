@@ -10,7 +10,7 @@ describe('storing global variables in ShaDa files', function()
   local tempname = 'Xtest-functional-legacy-074'
   setup(function()
     clear()
-    os.remove(tempname)
+    helpers.rm(tempname)
   end)
 
   it('is working', function()
@@ -53,6 +53,6 @@ describe('storing global variables in ShaDa files', function()
   end)
 
   teardown(function()
-    os.remove(tempname)
+    helpers.rm(tempname)
   end)
 end)

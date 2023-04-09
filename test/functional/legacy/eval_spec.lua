@@ -37,7 +37,7 @@ describe('eval', function()
   end)
   before_each(clear)
   teardown(function()
-    os.remove('test_eval_setup.vim')
+    helpers.rm('test_eval_setup.vim')
   end)
 
   it(':let', function()

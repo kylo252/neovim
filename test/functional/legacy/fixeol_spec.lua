@@ -6,11 +6,11 @@ local clear, feed_command, expect = helpers.clear, helpers.feed_command, helpers
 
 describe('fixeol', function()
   local function rmtestfiles()
-    os.remove("test.out")
-    os.remove("XXEol")
-    os.remove("XXNoEol")
-    os.remove("XXTestEol")
-    os.remove("XXTestNoEol")
+    helpers.rm("test.out")
+    helpers.rm("XXEol")
+    helpers.rm("XXNoEol")
+    helpers.rm("XXTestEol")
+    helpers.rm("XXTestNoEol")
   end
   setup(function()
     clear()
