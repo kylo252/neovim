@@ -370,14 +370,14 @@ describe('system()', function()
 
   describe('passing a lot of input', function()
     it('returns the program output', function()
-      local input = {}
+      local input_t = {}
       -- write more than 1mb of data, which should be enough to overcome
       -- the os buffer limit and force multiple event loop iterations to write
       -- everything
       for _ = 1, 0xffff do
-        input[#input + 1] = '01234567890ABCDEFabcdef'
+        input_t[#input_t + 1] = '01234567890ABCDEFabcdef'
       end
-      input = table.concat(input, '\n')
+      local input = table.concat(input_t, '\n')
       nvim('set_var', 'input', input)
       eq(input, eval('system("cat -", g:input)'))
     end)
